@@ -1,0 +1,167 @@
+[
+  {
+    "id": 1,
+    "name": "The Green Mile",
+    "productionYear": 1999,
+    "country": "USA",
+    "genre": "DRAMA",
+    "operator": {
+      "name": "Frank Darabont",
+      "growthInMetres": 1.83,
+      "nationality": "FRANCE",
+      "filmCount": 60,
+      "eyeColor": "BROWN",
+      "hairColor": "WHITE"
+    },
+    "budget": 60000000,
+    "fees": 286801374,
+    "mpaaRating": "R",
+    "durationInMinutes": 189,
+    "oscarsCount": 0,
+    "creationDate": {
+      "date": {
+        "year": 2022,
+        "month": 1,
+        "day": 23
+      },
+      "time": {
+        "hour": 6,
+        "minute": 20,
+        "second": 52,
+        "nano": 566000000
+      }
+    }
+  },
+  {
+    "id": 2,
+    "name": "The Shawshank Redemption",
+    "productionYear": 1994,
+    "country": "USA",
+    "genre": "DRAMA",
+    "operator": {
+      "name": "Frank Darabont",
+      "growthInMetres": 1.83,
+      "nationality": "FRANCE",
+      "filmCount": 60,
+      "eyeColor": "BROWN",
+      "hairColor": "WHITE"
+    },
+    "budget": 25000000,
+    "fees": 28418687,
+    "mpaaRating": "R",
+    "durationInMinutes": 142,
+    "oscarsCount": 0,
+    "creationDate": {
+      "date": {
+        "year": 2022,
+        "month": 1,
+        "day": 23
+      },
+      "time": {
+        "hour": 6,
+        "minute": 20,
+        "second": 52,
+        "nano": 582000000
+      }
+    }
+  },
+  {
+    "id": 3,
+    "name": "The Lord of the Rings: The Return of the King",
+    "productionYear": 2003,
+    "country": "NEW_ZEALAND",
+    "genre": "FANTASY",
+    "operator": {
+      "name": "Peter Jackson",
+      "growthInMetres": 1.65,
+      "nationality": "NEW_ZEALAND",
+      "filmCount": 163,
+      "eyeColor": "BROWN",
+      "hairColor": "BROWN"
+    },
+    "budget": 94000000,
+    "fees": 1140682011,
+    "mpaaRating": "PG_13",
+    "durationInMinutes": 201,
+    "oscarsCount": 11,
+    "creationDate": {
+      "date": {
+        "year": 2022,
+        "month": 1,
+        "day": 23
+      },
+      "time": {
+        "hour": 6,
+        "minute": 20,
+        "second": 52,
+        "nano": 582000000
+      }
+    }
+  },
+  {
+    "id": 4,
+    "name": "The Lord of the Rings: The Two Towers",
+    "productionYear": 2002,
+    "country": "NEW_ZEALAND",
+    "genre": "FANTASY",
+    "operator": {
+      "name": "Peter Jackson",
+      "growthInMetres": 1.65,
+      "nationality": "NEW_ZEALAND",
+      "filmCount": 163,
+      "eyeColor": "BROWN",
+      "hairColor": "BROWN"
+    },
+    "budget": 94000000,
+    "fees": 936689735,
+    "mpaaRating": "PG",
+    "durationInMinutes": 179,
+    "oscarsCount": 2,
+    "creationDate": {
+      "date": {
+        "year": 2022,
+        "month": 1,
+        "day": 23
+      },
+      "time": {
+        "hour": 6,
+        "minute": 20,
+        "second": 52,
+        "nano": 582000000
+      }
+    }
+  },
+  {
+    "id": 5,
+    "name": "The Lord of the Rings: The Fellowship of the Ring",
+    "productionYear": 2001,
+    "country": "NEW_ZEALAND",
+    "genre": "FANTASY",
+    "operator": {
+      "name": "Peter Jackson",
+      "growthInMetres": 1.65,
+      "nationality": "NEW_ZEALAND",
+      "filmCount": 163,
+      "eyeColor": "BROWN",
+      "hairColor": "BROWN"
+    },
+    "budget": 93000000,
+    "fees": 880839846,
+    "mpaaRating": "PG_13",
+    "durationInMinutes": 178,
+    "oscarsCount": 4,
+    "creationDate": {
+      "date": {
+        "year": 2022,
+        "month": 1,
+        "day": 23
+      },
+      "time": {
+        "hour": 6,
+        "minute": 20,
+        "second": 52,
+        "nano": 582000000
+      }
+    }
+  }
+]
