@@ -19,6 +19,9 @@
 *.tar.gz
 *.rar
 
+*.MF
+
 res/
 .idea/
 *.iml
+out/

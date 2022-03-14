@@ -1,23 +1,69 @@
 package ru.kosstar.data;
 
+/**
+ * Класс, определяющий координаты
+ */
 public class Coordinates {
-    private Long x; //Максимальное значение поля: 438, Поле не может быть null
-    private Double y; //Поле не может быть null
+    private Double x; //Значение поля должно быть больше -650. Поле не может быть null
+    private Float y; //Поле не может быть null
 
-    public Coordinates(Long x, Double y) throws IllegalArgumentException {
+    /**
+     * @param x значение координаты x
+     * @param y значение координаты y
+     * @throws IllegalArgumentException если поле принимает недопустимые значения
+     */
+    public Coordinates(Double x, Float y) throws IllegalArgumentException {
         setX(x);
         setY(y);
     }
 
-    public void setX(Long x) throws IllegalArgumentException {
-        if (x == null || x > 438)
-            throw new IllegalArgumentException("Значение поля не может быть пустым или больше 438.");
+    /**
+     * Метод для задания координаты x
+     *
+     * @param x значение координаты x
+     * @throws IllegalArgumentException если поле принимает недопустимые значения
+     */
+    public void setX(Double x) throws IllegalArgumentException {
+        if (x == null || x < -649)
+            throw new IllegalArgumentException("Значение поля не может быть меньше -651.");
         this.x = x;
     }
 
-    public void setY(Double y) throws IllegalArgumentException {
+    /**
+     * Метод для задания координаты y
+     *
+     * @param y значение координаты y
+     * @throws IllegalArgumentException если поле принимает недопустимые значения
+     */
+    public void setY(Float y) throws IllegalArgumentException {
         if (y == null)
             throw new IllegalArgumentException("Значение поля не может быть пустым.");
         this.y = y;
+    }
+
+    /**
+     * Метод для получения значения координаты x
+     *
+     * @return значение координаты x
+     */
+    public Double getX() {
+        return x;
+    }
+
+    /**
+     * Метод для получения значения координаты y
+     *
+     * @return значение координаты y
+     */
+    public Float getY() {
+        return y;
+    }
+
+    @Override
+    public String toString() {
+        return '{' + "\n" +
+                "x: " + x + "\n" +
+                "y: " + y + "\n" +
+                '}';
     }
 }
