@@ -10,7 +10,7 @@
       "growthInMetres": 1.83,
       "nationality": "FRANCE",
       "filmCount": 60,
-      "passportID": 11111111111
+      "passportID": "11111111111"
     },
     "budget": 60000000,
     "fees": 286801374,
@@ -18,8 +18,8 @@
     "durationInMinutes": 189,
     "oscarsCount": 0,
     "coordinates": {
-      "x": 0,
-      "y": 0
+      "x": 0.0,
+      "y": 0.0
     },
     "creationDate": {
       "date": {
@@ -46,7 +46,7 @@
       "growthInMetres": 1.83,
       "nationality": "FRANCE",
       "filmCount": 60,
-      "passportID": 22222222222
+      "passportID": "22222222222"
     },
     "budget": 25000000,
     "fees": 28418687,
@@ -54,8 +54,8 @@
     "durationInMinutes": 142,
     "oscarsCount": 0,
     "coordinates": {
-      "x": 0,
-      "y": 0
+      "x": 0.0,
+      "y": 0.0
     },
     "creationDate": {
       "date": {
@@ -82,7 +82,7 @@
       "growthInMetres": 1.65,
       "nationality": "NEW_ZEALAND",
       "filmCount": 163,
-      "passportID": 33333333333
+      "passportID": "33333333333"
     },
     "budget": 94000000,
     "fees": 1140682011,
@@ -90,8 +90,8 @@
     "durationInMinutes": 201,
     "oscarsCount": 11,
     "coordinates": {
-      "x": 0,
-      "y": 0
+      "x": 0.0,
+      "y": 0.0
     },
     "creationDate": {
       "date": {
@@ -118,7 +118,7 @@
       "growthInMetres": 1.65,
       "nationality": "NEW_ZEALAND",
       "filmCount": 163,
-      "passportID": 44444444444
+      "passportID": "44444444444"
     },
     "budget": 94000000,
     "fees": 936689735,
@@ -126,8 +126,8 @@
     "durationInMinutes": 179,
     "oscarsCount": 2,
     "coordinates": {
-      "x": 0,
-      "y": 0
+      "x": 0.0,
+      "y": 0.0
     },
     "creationDate": {
       "date": {
@@ -154,7 +154,7 @@
       "growthInMetres": 1.65,
       "nationality": "NEW_ZEALAND",
       "filmCount": 163,
-      "passportID": 55555555555
+      "passportID": "55555555555"
     },
     "budget": 93000000,
     "fees": 880839846,
@@ -162,8 +162,8 @@
     "durationInMinutes": 178,
     "oscarsCount": 4,
     "coordinates": {
-      "x": 0,
-      "y": 0
+      "x": 0.0,
+      "y": 0.0
     },
     "creationDate": {
       "date": {

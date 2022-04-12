@@ -25,3 +25,4 @@ res/
 .idea/
 *.iml
 out/
+logs/
