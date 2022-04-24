@@ -6,25 +6,24 @@ import java.io.Serializable;
  * Класс, определяющий режиссёра
  */
 public class Person implements Comparable<Person>, Serializable {
+    private int id;
     private String name; //Поле не может быть null, Строка не может быть пустой
     private double growthInMetres; //Значение поля не может быть больше 3.0 или меньше 0
     private Country nationality;
     private int filmCount; //Значение поля не может быть меньше 1
-    private String passportID;
 
     /**
      * @param name           имя
      * @param growthInMetres рост в метрах
      * @param nationality    национальность
      * @param filmCount      количество снятых фильмов
-     * @param passportID     паспорт
      */
-    public Person(String name, double growthInMetres, Country nationality, int filmCount, String passportID) {
+    public Person(int id, String name, double growthInMetres, Country nationality, int filmCount) {
+        this.id = id;
         setName(name);
         setGrowthInMetres(growthInMetres);
         setNationality(nationality);
         setFilmCount(filmCount);
-        setPassportID(passportID);
     }
 
     /**
@@ -32,6 +31,10 @@ public class Person implements Comparable<Person>, Serializable {
      */
     public Person(String name) {
         setName(name);
+    }
+
+    public int getId() {
+        return id;
     }
 
     /**
@@ -80,18 +83,6 @@ public class Person implements Comparable<Person>, Serializable {
     }
 
     /**
-     * Метод для задания паспорта режиссёра
-     *
-     * @param passportID паспорт режиссёра
-     * @throws IllegalArgumentException если поле принимает недопустимое значение
-     */
-    public void setPassportID(String passportID) throws IllegalArgumentException {
-        if (passportID.length() < 10)
-            throw new IllegalArgumentException("Длинна поля не может быть меньше 10.");
-        this.passportID = passportID;
-    }
-
-    /**
      * Метод для получения имени режиссёра
      *
      * @return имя режиссёра
@@ -127,28 +118,29 @@ public class Person implements Comparable<Person>, Serializable {
         return filmCount;
     }
 
-    /**
-     * Метод для получения паспорта режиссёра
-     *
-     * @return паспорт режиссёра
-     */
-    public String getPassportID() {
-        return passportID;
-    }
 
     @Override
     public String toString() {
-        return '{' + "\n" +
-                "name: " + name + "\n" +
-                "growthInMetres: " + growthInMetres + "\n" +
-                "nationality: " + nationality + "\n" +
-                "filmCount: " + filmCount + "\n" +
-                "passportID: " + passportID + "\n" +
-                "}";
+        return "Person{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", growthInMetres=" + growthInMetres +
+                ", nationality=" + nationality +
+                ", filmCount=" + filmCount +
+                '}';
     }
 
     @Override
     public int compareTo(Person o) {
         return this.name.compareTo(o.name);
+    }
+
+    public void copy(Person p) {
+        if (this.id != p.id)
+            return;
+        this.name = p.name;
+        this.growthInMetres = p.growthInMetres;
+        this.nationality = p.nationality;
+        this.filmCount = p.filmCount;
     }
 }

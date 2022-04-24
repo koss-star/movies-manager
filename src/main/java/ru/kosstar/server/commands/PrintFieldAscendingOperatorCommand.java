@@ -21,7 +21,7 @@ public class PrintFieldAscendingOperatorCommand extends AbstractCommand<Nothing,
                 .getMovies()
                 .values()
                 .stream()
-                .map(Movie::getOperator)
+                .map(Movie::getDirector)
                 .sorted()
                 .distinct()
                 .collect(Collectors.toList());

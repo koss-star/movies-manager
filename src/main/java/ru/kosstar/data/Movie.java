@@ -8,19 +8,18 @@ import java.util.Calendar;
  * Класс, определяющий фильм
  */
 public class Movie implements Comparable<Movie>, Serializable {
-    private static int nextId = 1;
     private int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
+    private User owner;
     private String name; //Поле не может быть null, Строка не может быть пустой
     private int productionYear; //Значение поля должно быть больше 1894 и меньше следующего года
     private Country country;
     private MovieGenre genre;
-    private Person operator; //Поле не может быть null
+    private Person director; //Поле не может быть null
     private long budget; //Значение поля не может быть меньше 0
     private long fees; //Значение поля не может быть меньше 0
     private MpaaRating mpaaRating;
     private int durationInMinutes; //Значение поля не может быть меньше 1
     private int oscarsCount; //Значение поля не может быть меньше 0
-    private Coordinates coordinates;
     private final LocalDateTime creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
 
     /**
@@ -28,46 +27,48 @@ public class Movie implements Comparable<Movie>, Serializable {
      * @param productionYear    год создания
      * @param country           страна производства
      * @param genre             жанр
-     * @param operator          режиссёр
+     * @param director          режиссёр
      * @param budget            бюджет
      * @param fees              сборы
      * @param mpaaRating        MPAA рейтинг
      * @param durationInMinutes продолжительность в минутах
      * @param oscarsCount       количество оскаров
-     * @param coordinates       координаты
      */
-    public Movie(String name, int productionYear, Country country, MovieGenre genre,
-                 Person operator, long budget, long fees, MpaaRating mpaaRating,
-                 int durationInMinutes, int oscarsCount, Coordinates coordinates) {
-        setId();
+    public Movie(int id, User owner, String name, int productionYear, Country country, MovieGenre genre,
+                 Person director, long budget, long fees, MpaaRating mpaaRating,
+                 int durationInMinutes, int oscarsCount, LocalDateTime creationDate) {
+        this.id = id;
+        this.owner = owner;
         setName(name);
         setProductionYear(productionYear);
         setCountry(country);
         setGenre(genre);
-        setOperator(operator);
+        setDirector(director);
         setBudget(budget);
         setFees(fees);
         setMpaaRating(mpaaRating);
         setDurationInMinutes(durationInMinutes);
         setOscarsCount(oscarsCount);
-        setCoordinates(coordinates);
-        creationDate = LocalDateTime.now();
+        this.creationDate = creationDate;
     }
 
     /**
      * @param name     название
-     * @param operator режиссёр
+     * @param director режиссёр
      */
-    public Movie(String name, Person operator) {
-        setId();
+    public Movie(String name, Person director) {
         setName(name);
-        setOperator(operator);
+        setDirector(director);
         creationDate = LocalDateTime.now();
     }
 
-    public void setId() {
-        this.id = Movie.nextId;
-        Movie.nextId++;
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+        //TODO remove
     }
 
     public void setId(int id) {
@@ -118,10 +119,10 @@ public class Movie implements Comparable<Movie>, Serializable {
     /**
      * Метод для задания данных о режиссёре фильма
      *
-     * @param operator режиссёр фильма
+     * @param director режиссёр фильма
      */
-    public void setOperator(Person operator) {
-        this.operator = operator;
+    public void setDirector(Person director) {
+        this.director = director;
     }
 
     /**
@@ -182,15 +183,6 @@ public class Movie implements Comparable<Movie>, Serializable {
     }
 
     /**
-     * Метод для задания координат
-     *
-     * @param coordinates координаты
-     */
-    public void setCoordinates(Coordinates coordinates) {
-        this.coordinates = coordinates;
-    }
-
-    /**
      * Метод ля получения id фильма
      *
      * @return id фильма
@@ -240,8 +232,8 @@ public class Movie implements Comparable<Movie>, Serializable {
      *
      * @return данные режиссёра фильма
      */
-    public Person getOperator() {
-        return operator;
+    public Person getDirector() {
+        return director;
     }
 
     /**
@@ -289,14 +281,6 @@ public class Movie implements Comparable<Movie>, Serializable {
         return oscarsCount;
     }
 
-    /**
-     * Метод для получения значений координат
-     *
-     * @return координаты
-     */
-    public Coordinates getCoordinates() {
-        return coordinates;
-    }
 
     /**
      * Метод для получения даты добавления фильма
@@ -307,33 +291,41 @@ public class Movie implements Comparable<Movie>, Serializable {
         return creationDate;
     }
 
+
     @Override
     public String toString() {
-        return "{id: " + id + "\n" +
-                "name: " + name + "\n" +
-                "productionYear: " + productionYear + "\n" +
-                "country: " + country + "\n" +
-                "genre: " + genre + "\n" +
-                "operator: " + operator.toString() + "\n" +
-                "budget: " + budget + "\n" +
-                "fees: " + fees + "\n" +
-                "mpaaRating: " + mpaaRating + "\n" +
-                "durationInMinutes: " + durationInMinutes + "\n" +
-                "oscarsCount: " + oscarsCount + "\n" +
-                "coordinates: " + coordinates + "\n" +
-                "creationDate: " + creationDate + "\n" +
-                "}\n";
-    }
-
-    public static void setIdSeqStart(int i) {
-        if (Movie.nextId == 1)
-            Movie.nextId = i;
-        else
-            throw new IllegalStateException();
+        return "Movie{" +
+                "id=" + id +
+                ", user=" + owner +
+                ", name='" + name + '\'' +
+                ", productionYear=" + productionYear +
+                ", country=" + country +
+                ", genre=" + genre +
+                ", director=" + director +
+                ", budget=" + budget +
+                ", fees=" + fees +
+                ", mpaaRating=" + mpaaRating +
+                ", durationInMinutes=" + durationInMinutes +
+                ", oscarsCount=" + oscarsCount +
+                ", creationDate=" + creationDate +
+                '}';
     }
 
     @Override
     public int compareTo(Movie o) {
         return this.name.compareTo(o.name);
+    }
+
+    public void copy(Movie m) {
+        this.name = m.name;
+        this.productionYear = m.productionYear;
+        this.country = m.country;
+        this.genre = m.genre;
+        this.director = m.director;
+        this.budget = m.budget;
+        this.fees = m.fees;
+        this.mpaaRating = m.mpaaRating;
+        this.durationInMinutes = m.durationInMinutes;
+        this.oscarsCount = m.oscarsCount;
     }
 }

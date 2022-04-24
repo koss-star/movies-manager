@@ -14,7 +14,6 @@ public class InsertCommand extends AbstractCommand<Movie, String> {
 
     @Override
     public String executeWithArg(Movie movie) {
-        movie.setId();
         movieManager.getMovies().put(movie.getId(), movie);
         return "Фильм успешно добавлен!";
     }

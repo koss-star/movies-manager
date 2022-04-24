@@ -60,8 +60,6 @@ public class MovieManager {
                 for (Movie movie : movies) {
                     this.movies.put(movie.getId(), movie);
                 }
-                int maxId = this.movies.values().stream().mapToInt(Movie::getId).max().orElse(0);
-                Movie.setIdSeqStart(maxId + 1);
             }
         } catch (IOException e) {
             throw new InvalidFileException("Произошла ошибка чтения из файла.");

@@ -107,8 +107,6 @@ public class IO {
                         Country.values(), Country.class, null));
         printString("Введите количество снятых фильмов: ");
         readField(person::setFilmCount, () -> readInt(1));
-        printString("Введите паспорт id: ");
-        readField(person::setPassportID, this::readNotEmptyString);
         return person;
     }
 
@@ -121,7 +119,7 @@ public class IO {
         Movie movie = new Movie("Default", null);
         printString("Введите название фильма: ");
         readField(movie::setName, this::readNotEmptyString);
-        readField(movie::setOperator, this::readPerson);
+        readField(movie::setDirector, this::readPerson);
         printString("Введите год создания фильма: ");
         readField(movie::setProductionYear, () -> readInt(Calendar.getInstance().get(Calendar.YEAR)));
         readField(movie::setCountry,
@@ -139,8 +137,6 @@ public class IO {
         readField(movie::setDurationInMinutes, () -> readInt(120));
         printString("Введите количество оскаров фильма: ");
         readField(movie::setOscarsCount, () -> readInt(0));
-        printString("Введите координаты фильма: ");
-        readField(movie::setCoordinates, this::readNotNullCoordinates);
         return movie;
     }
 
@@ -229,20 +225,6 @@ public class IO {
                 printString("Некорректное значение. Введите число: ");
             }
         }
-    }
-
-    /**
-     * Метод для считывания координат, которые не могут быть null
-     *
-     * @return считанные координаты
-     */
-    public Coordinates readNotNullCoordinates() {
-        Coordinates coordinates = new Coordinates(0D, 0F);
-        printString("Введите координату x:");
-        readField(coordinates::setX, () -> readDouble(0D));
-        printString("Введите координату y:");
-        readField(coordinates::setY, () -> readFloat(0F));
-        return coordinates;
     }
 
     /**
