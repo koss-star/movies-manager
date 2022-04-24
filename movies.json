@@ -1,182 +1,90 @@
 [
   {
-    "id": 1,
-    "name": "The Green Mile",
-    "productionYear": 1999,
-    "country": "USA",
-    "genre": "DRAMA",
-    "operator": {
-      "name": "Frank Darabont",
-      "growthInMetres": 1.83,
-      "nationality": "FRANCE",
-      "filmCount": 60,
-      "passportID": "11111111111"
-    },
-    "budget": 60000000,
-    "fees": 286801374,
-    "mpaaRating": "R",
-    "durationInMinutes": 189,
-    "oscarsCount": 0,
-    "coordinates": {
-      "x": 0.0,
-      "y": 0.0
-    },
-    "creationDate": {
-      "date": {
-        "year": 2022,
-        "month": 1,
-        "day": 23
-      },
-      "time": {
-        "hour": 6,
-        "minute": 20,
-        "second": 52,
-        "nano": 566000000
-      }
-    }
-  },
-  {
     "id": 2,
+    "owner": {
+      "login": "admin",
+      "pass": "aaaaa"
+    },
     "name": "The Shawshank Redemption",
     "productionYear": 1994,
     "country": "USA",
     "genre": "DRAMA",
-    "operator": {
+    "director": {
       "name": "Frank Darabont",
       "growthInMetres": 1.83,
       "nationality": "FRANCE",
-      "filmCount": 60,
-      "passportID": "22222222222"
+      "filmCount": 60
     },
     "budget": 25000000,
     "fees": 28418687,
     "mpaaRating": "R",
     "durationInMinutes": 142,
-    "oscarsCount": 0,
-    "coordinates": {
-      "x": 0.0,
-      "y": 0.0
-    },
-    "creationDate": {
-      "date": {
-        "year": 2022,
-        "month": 1,
-        "day": 23
-      },
-      "time": {
-        "hour": 6,
-        "minute": 20,
-        "second": 52,
-        "nano": 582000000
-      }
-    }
+    "oscarsCount": 0
   },
   {
     "id": 3,
+    "owner": {
+      "login": "admin",
+      "pass": "aaaaa"
+    },
     "name": "The Lord of the Rings: The Return of the King",
     "productionYear": 2003,
     "country": "NEW_ZEALAND",
     "genre": "FANTASY",
-    "operator": {
+    "director": {
       "name": "Peter Jackson",
       "growthInMetres": 1.65,
       "nationality": "NEW_ZEALAND",
-      "filmCount": 163,
-      "passportID": "33333333333"
+      "filmCount": 163
     },
     "budget": 94000000,
     "fees": 1140682011,
     "mpaaRating": "PG_13",
     "durationInMinutes": 201,
-    "oscarsCount": 11,
-    "coordinates": {
-      "x": 0.0,
-      "y": 0.0
-    },
-    "creationDate": {
-      "date": {
-        "year": 2022,
-        "month": 1,
-        "day": 23
-      },
-      "time": {
-        "hour": 6,
-        "minute": 20,
-        "second": 52,
-        "nano": 582000000
-      }
-    }
+    "oscarsCount": 11
   },
   {
     "id": 4,
+    "owner": {
+      "login": "admin",
+      "pass": "aaaaa"
+    },
     "name": "The Lord of the Rings: The Two Towers",
     "productionYear": 2002,
     "country": "NEW_ZEALAND",
     "genre": "FANTASY",
-    "operator": {
+    "director": {
       "name": "Peter Jackson",
       "growthInMetres": 1.65,
       "nationality": "NEW_ZEALAND",
-      "filmCount": 163,
-      "passportID": "44444444444"
+      "filmCount": 163
     },
     "budget": 94000000,
     "fees": 936689735,
     "mpaaRating": "PG",
     "durationInMinutes": 179,
-    "oscarsCount": 2,
-    "coordinates": {
-      "x": 0.0,
-      "y": 0.0
-    },
-    "creationDate": {
-      "date": {
-        "year": 2022,
-        "month": 1,
-        "day": 23
-      },
-      "time": {
-        "hour": 6,
-        "minute": 20,
-        "second": 52,
-        "nano": 582000000
-      }
-    }
+    "oscarsCount": 2
   },
   {
     "id": 5,
+    "owner": {
+      "login": "admin",
+      "pass": "aaaaa"
+    },
     "name": "The Lord of the Rings: The Fellowship of the Ring",
     "productionYear": 2001,
     "country": "NEW_ZEALAND",
     "genre": "FANTASY",
-    "operator": {
+    "director": {
       "name": "Peter Jackson",
       "growthInMetres": 1.65,
       "nationality": "NEW_ZEALAND",
-      "filmCount": 163,
-      "passportID": "55555555555"
+      "filmCount": 163
     },
     "budget": 93000000,
     "fees": 880839846,
     "mpaaRating": "PG_13",
     "durationInMinutes": 178,
-    "oscarsCount": 4,
-    "coordinates": {
-      "x": 0.0,
-      "y": 0.0
-    },
-    "creationDate": {
-      "date": {
-        "year": 2022,
-        "month": 1,
-        "day": 23
-      },
-      "time": {
-        "hour": 6,
-        "minute": 20,
-        "second": 52,
-        "nano": 582000000
-      }
-    }
+    "oscarsCount": 4
   }
 ]
