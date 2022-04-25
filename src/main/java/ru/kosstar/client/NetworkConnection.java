@@ -1,9 +1,8 @@
 package ru.kosstar.client;
 
-import ru.kosstar.connection.ClientMessage;
-import ru.kosstar.connection.CommandWithArgument;
-import ru.kosstar.connection.MessageType;
-import ru.kosstar.connection.ServerMessage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import ru.kosstar.connection.*;
 import ru.kosstar.data.User;
 
 import java.io.*;
@@ -11,9 +10,10 @@ import java.net.*;
 import java.nio.ByteBuffer;
 
 public class NetworkConnection {
+    private static final Logger logger = LogManager.getLogger("ClientLogger");
     private final DatagramSocket socket;
     private final InetSocketAddress remoteAddr;
-    private final ByteBuffer buffer = ByteBuffer.allocate(4 * 1024 * 1024);
+    private final ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
     private final SocketAddress localAddr;
 
     public NetworkConnection(InetSocketAddress remoteAddr) throws IOException {
@@ -23,8 +23,9 @@ public class NetworkConnection {
         socket.setSoTimeout(10000);
     }
 
-    private boolean sendMessage(User user, MessageType type, Object object) {
+    private void sendMessage(User user, RequestType type, Object object) throws InternalClientException {
         ClientMessage message = new ClientMessage(user, type, object, localAddr);
+        logger.info("Попытка отправить сообщение серверу " + type);
         try {
             try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream(buffer.capacity());
                  ObjectOutputStream objOut = new ObjectOutputStream(byteOut)) {
@@ -35,31 +36,29 @@ public class NetworkConnection {
                 buffer.flip();
                 DatagramPacket packet = new DatagramPacket(buffer.array(), buffer.limit(), remoteAddr);
                 socket.send(packet);
-                return true;
             }
         } catch (IOException e) {
-            return false;
+            logger.error("Не удалось отправить сообщение", e);
+            throw new InternalClientException(e);
         }
     }
 
-    public ServerMessage sendCommand(User user, String commandName, Object commandArg) {
-        if (!sendMessage(user, MessageType.COMMAND, new CommandWithArgument(commandName, commandArg)))
-            return new ServerMessage("Не удалось отправить сообщение.", true, null);
-        else
-            return receiveMessage();
+    public ServerMessage sendCommand(User user, String commandName, Object commandArg) throws InternalClientException {
+        sendMessage(user, RequestType.COMMAND, new CommandWithArgument(commandName, commandArg));
+        return receiveMessage();
     }
 
-    public boolean signIn(User user) {
-        sendMessage(null, MessageType.SIGN_IN, user);
-        return receiveMessage().isSuccess();
+    public ServerMessage signIn(User user) throws InternalClientException {
+        sendMessage(null, RequestType.SIGN_IN, user);
+        return receiveMessage();
     }
 
-    public boolean signUp(User user) {
-        sendMessage(null, MessageType.SIGN_UP, user);
-        return receiveMessage().isSuccess();
+    public ServerMessage signUp(User user) throws InternalClientException {
+        sendMessage(null, RequestType.SIGN_UP, user);
+        return receiveMessage();
     }
 
-    public ServerMessage receiveMessage() {
+    public ServerMessage receiveMessage() throws InternalClientException {
         try {
             buffer.clear();
             DatagramPacket packet = new DatagramPacket(buffer.array(), buffer.capacity(), remoteAddr);
@@ -68,13 +67,15 @@ public class NetworkConnection {
             try (ObjectInputStream objIn = new ObjectInputStream(
                     new ByteArrayInputStream(buffer.array(), 0, buffer.limit())
             )) {
-                return (ServerMessage) objIn.readObject();
+                ServerMessage received = (ServerMessage) objIn.readObject();
+                logger.info("Получил сообщение от сервера " + received.getType());
+                return received;
             }
         } catch (SocketTimeoutException e) {
-            return new ServerMessage("Сервер недоступен.", true, null);
+            return new ServerMessage("Сервер недоступен", ResponseType.NOT_AVAILABLE, null);
         } catch (ClassNotFoundException | ClassCastException | IOException e) {
-            e.printStackTrace();
-            return new ServerMessage("Произошла внутренняя ошибка приложения.", true, null);
+            logger.error("Ошибка при получении сообщения от сервера", e);
+            throw new InternalClientException();
         }
     }
 

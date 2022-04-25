@@ -1,6 +1,7 @@
 package ru.kosstar.server.commands;
 
 import ru.kosstar.data.Movie;
+import ru.kosstar.data.User;
 import ru.kosstar.server.MovieManager;
 
 /**
@@ -13,7 +14,7 @@ public class AverageOfOscarsCountCommand extends AbstractCommand<Nothing, Double
     }
 
     @Override
-    public Double execute() {
+    public Double execute(User user) {
         return movieManager
                 .getMovies()
                 .values()

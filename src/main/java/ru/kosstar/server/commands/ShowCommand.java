@@ -1,6 +1,7 @@
 package ru.kosstar.server.commands;
 
 import ru.kosstar.data.Movie;
+import ru.kosstar.data.User;
 import ru.kosstar.server.MovieManager;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class ShowCommand extends AbstractCommand<Nothing, List<Movie>> {
     }
 
     @Override
-    public List<Movie> execute() {
+    public List<Movie> execute(User user) {
         return movieManager
                 .getMovies()
                 .values()

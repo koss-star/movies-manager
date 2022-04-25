@@ -2,6 +2,7 @@ package ru.kosstar.server.commands;
 
 import ru.kosstar.data.Movie;
 import ru.kosstar.data.MpaaRating;
+import ru.kosstar.data.User;
 import ru.kosstar.server.MovieManager;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class FilterByMpaaRatingCommand extends AbstractCommand<MpaaRating, List<
     }
 
     @Override
-    public List<Movie> executeWithArg(MpaaRating argument) {
+    public List<Movie> executeWithArg(User user, MpaaRating argument) {
         List<Movie> movies = movieManager
                 .getMovies()
                 .values()

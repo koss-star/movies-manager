@@ -1,7 +1,5 @@
 package ru.kosstar.server.database;
 
-import ru.kosstar.data.Country;
-import ru.kosstar.data.MovieGenre;
 import ru.kosstar.data.MpaaRating;
 
 import java.sql.Connection;
@@ -13,8 +11,8 @@ import java.util.List;
 
 public class MpaaRatingRepository extends AbstractRepository<Integer, MpaaRating> {
 
-    public MpaaRatingRepository(Connection connection) {
-        super(connection);
+    public MpaaRatingRepository(DbConnectionManager connectionManager) {
+        super(connectionManager);
     }
 
     private MpaaRating fromResultSet(ResultSet rs) throws SQLException {
@@ -23,7 +21,7 @@ public class MpaaRatingRepository extends AbstractRepository<Integer, MpaaRating
 
     @Override
     public MpaaRating get(Integer key) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select name " +
                     "from mpaaratings where id = " + key + ";");
             if (rs.next()) {
@@ -35,7 +33,7 @@ public class MpaaRatingRepository extends AbstractRepository<Integer, MpaaRating
 
     @Override
     public List<MpaaRating> getAll() throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select name " +
                     "from mpaaratings;");
             List<MpaaRating> ratings = new ArrayList<>();
@@ -47,7 +45,9 @@ public class MpaaRatingRepository extends AbstractRepository<Integer, MpaaRating
     }
 
     public Integer getIdByName(MpaaRating mpaaRating) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        if (mpaaRating == null)
+            return null;
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select id " +
                     "from mpaaratings where name = '" + mpaaRating.name() + "';");
             if (rs.next()) {

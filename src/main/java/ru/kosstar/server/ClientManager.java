@@ -4,23 +4,38 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.kosstar.connection.ClientMessage;
 import ru.kosstar.connection.CommandWithArgument;
+import ru.kosstar.connection.ResponseType;
 import ru.kosstar.connection.ServerMessage;
 import ru.kosstar.data.User;
+import ru.kosstar.server.database.DbConnectionManager;
+import ru.kosstar.server.database.UserRepository;
 
 import java.net.SocketAddress;
+import java.sql.SQLException;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Модуль обработки запросов клиента {@link ClientMessage} и подготовки ответов сервера {@link ServerMessage}.
  */
 public class ClientManager {
-    private static final Logger logger = LogManager.getLogger(ClientManager.class);
+    private static final Logger logger = LogManager.getLogger("ServerLogger");
     private final MovieManager movieManager;
+
+    private final UserRepository userRepository;
+    private final ExecutorService threadPool;
 
     /**
      * @param movieManager менеджер для управления коллекцией фильмов
      */
-    public ClientManager(MovieManager movieManager) {
+    public ClientManager(UserRepository userRepository, MovieManager movieManager) {
         this.movieManager = movieManager;
+        this.userRepository = userRepository;
+        this.threadPool = Executors.newFixedThreadPool(2);
     }
 
     /*
@@ -31,7 +46,7 @@ public class ClientManager {
             throws FailedCommandExecutionException,
             UnsupportedOperationException,
             IllegalArgumentException {
-        return movieManager.executeCommand(commandWithArgument);
+        return movieManager.executeCommand(user, commandWithArgument);
     }
 
     /**
@@ -40,49 +55,79 @@ public class ClientManager {
      * @param receivedMessage сообщение клиента
      * @return ответ сервера на запрос клиента
      */
-    public ServerMessage handleClientMessage(ClientMessage receivedMessage) {
-        ServerMessage sendingMessage;
-        Object messageBody = receivedMessage.getMessageBody();
-        SocketAddress destination = receivedMessage.getSenderAddress();
-        try {
-            switch (receivedMessage.getType()) {
-                case SIGN_IN:
-                    // TODO аутентификация
-                    logger.info("Запрос на аутентификацию от пользователя: " + messageBody);
-                    sendingMessage = new ServerMessage(false, destination);
-                    break;
-                case SIGN_UP:
-                    // TODO регистрация
-                    logger.info("Запрос на регистрацию от пользователя: " + messageBody);
-                    sendingMessage = new ServerMessage(false, destination);
-                    break;
-                case COMMAND:
-                    try {
-                        sendingMessage = new ServerMessage(
-                                executeCommand(
-                                        receivedMessage.getUser(),
-                                        (CommandWithArgument) messageBody
-                                ),
-                                destination
-                        );
-                    } catch (FailedCommandExecutionException e) {
-                        sendingMessage = new ServerMessage(e.getMessage(), true, destination);
-                    } catch (IllegalArgumentException | UnsupportedOperationException e) {
-                        logger.warn("Получен некорректный запрос на выполнение команды: " + messageBody);
-                        sendingMessage = new ServerMessage("Некорректный запрос", true, destination);
-                    }
-                    break;
-                default:
-                    logger.warn("Необработанный тип запроса: " + receivedMessage);
-                    sendingMessage = new ServerMessage(true, destination);
-                    break;
+    public Future<ServerMessage> handleClientMessage(ClientMessage receivedMessage) {
+        return threadPool.submit(() -> {
+            ServerMessage sendingMessage = null;
+            Object messageBody = receivedMessage.getMessageBody();
+            SocketAddress destination = receivedMessage.getSenderAddress();
+            try {
+                switch (receivedMessage.getType()) {
+                    case SIGN_IN:
+                        User authUser = (User) messageBody;
+                        logger.info("Запрос на аутентификацию от пользователя " + authUser.getLogin());
+                        if (userRepository.checkPass(authUser))
+                            sendingMessage = new ServerMessage(ResponseType.OK, destination);
+                        else
+                            sendingMessage = new ServerMessage(ResponseType.LOGIN_FAILED, destination);
+                        break;
+                    case SIGN_UP:
+                        User registerUser = (User) messageBody;
+                        logger.info("Запрос на регистрацию от пользователя: " + registerUser.getLogin());
+                        if (userRepository.get(registerUser.getLogin()) != null)
+                            sendingMessage = new ServerMessage(ResponseType.LOGIN_FAILED, destination);
+                        else {
+                            userRepository.insert(registerUser);
+                            sendingMessage = new ServerMessage(ResponseType.OK, destination);
+                        }
+                        break;
+                    case COMMAND:
+                        try {
+                            logger.info("Попытка выполнить команду(" + messageBody + ") от пользователя " +
+                                    receivedMessage.getUser().getLogin());
+                            sendingMessage = new ServerMessage(
+                                    executeCommand(
+                                            receivedMessage.getUser(),
+                                            (CommandWithArgument) messageBody
+                                    ),
+                                    ResponseType.OK,
+                                    destination
+                            );
+                        } catch (FailedCommandExecutionException e) {
+                            logger.info("Неуспешное выполнение команды");
+                            Throwable cause = e.getCause();
+                            if (cause instanceof SQLException) {
+                                throw (SQLException) cause;
+                            } else if (cause instanceof IllegalAccessException) {
+                                sendingMessage = new ServerMessage(ResponseType.ILLEGAL_ACCESS, destination);
+                            } else
+                                sendingMessage = new ServerMessage(e.getMessage(), ResponseType.FAILED_EXECUTION, destination);
+                        } catch (IllegalArgumentException | UnsupportedOperationException e) {
+                            logger.warn("Получен некорректный запрос на выполнение команды: " + messageBody);
+                            sendingMessage = new ServerMessage(ResponseType.INVALID_REQUEST, destination);
+                        }
+                        break;
+                    default:
+                        logger.error("Необработанный тип запроса: " + receivedMessage);
+                        sendingMessage = new ServerMessage(ResponseType.INTERNAL_SERVER_ERROR, destination);
+                        break;
+                }
+            } catch (ClassCastException e) {
+                logger.warn("Получен некорректный запрос на выполнение команды: " + messageBody);
+                sendingMessage = new ServerMessage(ResponseType.INVALID_REQUEST, destination);
+            } catch (SQLException e) {
+                logger.warn("Ошибка в базе данных", e);
+                sendingMessage = new ServerMessage(ResponseType.INTERNAL_SERVER_ERROR, destination);
+            } finally {
+                if (sendingMessage != null) {
+                    if (receivedMessage.getUser() != null)
+                        logger.info("Запрос выполнен, сформированный ответ " + sendingMessage.getType() +
+                                " для пользователя " + receivedMessage.getUser().getLogin());
+                    else
+                        logger.info("Запрос выполнен, сформированный ответ " + sendingMessage.getType());
+                }
             }
-            logger.info("Запрос выполнен, сформированный ответ: " + sendingMessage);
-        } catch (ClassCastException e) {
-            logger.warn("Получен некорректный запрос на выполнение команды: " + messageBody);
-            sendingMessage = new ServerMessage("Некорректный запрос", true, destination);
-        }
-        return sendingMessage;
+            return sendingMessage;
+        });
     }
 
 }

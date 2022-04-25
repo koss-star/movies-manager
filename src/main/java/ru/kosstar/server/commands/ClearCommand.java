@@ -1,6 +1,10 @@
 package ru.kosstar.server.commands;
 
+import ru.kosstar.data.User;
+import ru.kosstar.server.FailedCommandExecutionException;
 import ru.kosstar.server.MovieManager;
+
+import java.sql.SQLException;
 
 /**
  * Класс, описывающий команду, которая очищает коллекцию
@@ -12,8 +16,17 @@ public class ClearCommand extends AbstractCommand<Nothing, String> {
     }
 
     @Override
-    public String execute() {
-        movieManager.getMovies().clear();
-        return "Коллекция очищена.";
+    public String execute(User user) throws FailedCommandExecutionException {
+        try {
+            movieManager.getMoviesLock().lock();
+            movieManager.getMovies().clear();
+            movieManager.getMovieRepository().deleteByUser(user);
+            movieManager.getMovieRepository().getAll().forEach(m -> movieManager.getMovies().put(m.getId(), m));
+        } catch (SQLException e) {
+            throw new FailedCommandExecutionException(e);
+        } finally {
+            movieManager.getMoviesLock().unlock();
+        }
+        return "Ваша коллекция очищена.";
     }
 }

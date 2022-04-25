@@ -7,18 +7,18 @@ import java.net.SocketAddress;
 
 public class ClientMessage implements Serializable {
     private final User user;
-    private final MessageType type;
+    private final RequestType type;
     private final Object messageBody;
     private final SocketAddress senderAddress;
 
-    public ClientMessage(User user, MessageType type, Object messageBody, SocketAddress senderAddress) {
+    public ClientMessage(User user, RequestType type, Object messageBody, SocketAddress senderAddress) {
         this.user = user;
         this.type = type;
         this.messageBody = messageBody;
         this.senderAddress = senderAddress;
     }
 
-    public MessageType getType() {
+    public RequestType getType() {
         return type;
     }
 

@@ -1,6 +1,7 @@
 package ru.kosstar.server.commands;
 
 import ru.kosstar.data.Movie;
+import ru.kosstar.data.User;
 import ru.kosstar.server.MovieManager;
 
 import java.util.IntSummaryStatistics;
@@ -15,7 +16,7 @@ public class InfoCommand extends AbstractCommand<Nothing, String> {
     }
 
     @Override
-    public String execute() {
+    public String execute(User user) {
         IntSummaryStatistics statistics = movieManager
                 .getMovies()
                 .values()
@@ -28,9 +29,6 @@ public class InfoCommand extends AbstractCommand<Nothing, String> {
         }
         return "Тип коллекции: "
                 + movieManager.getMovies().getClass().getSimpleName()
-                + "\n"
-                + "Дата инициализации: "
-                + movieManager.getInitTime()
                 + "\n"
                 + "Количество фильмов: "
                 + movieManager.getMovies().size()

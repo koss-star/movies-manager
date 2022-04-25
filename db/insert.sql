@@ -1,23 +1,56 @@
+insert into moviegenres
+values (default, 'COMEDY');
+insert into moviegenres
+values (default, 'ADVENTURE');
+insert into moviegenres
+values (default, 'DRAMA');
+insert into moviegenres
+values (default, 'CRIME');
+insert into moviegenres
+values (default, 'BIOGRAPHY');
+insert into moviegenres
+values (default, 'ACTION');
+insert into moviegenres
+values (default, 'WAR');
+insert into moviegenres
+values (default, 'HORROR');
+insert into moviegenres
+values (default, 'THRILLER');
+insert into moviegenres
+values (default, 'DOCUMENTARY');
+insert into moviegenres
+values (default, 'FANTASY');
+
 insert into countries
-values (default, 'Russia');
+values (default, 'SPAIN');
+insert into countries
+values (default, 'USA');
+insert into countries
+values (default, 'FRANCE');
+insert into countries
+values (default, 'NEW_ZEALAND');
+insert into countries
+values (default, 'GREAT_BRITAIN');
+insert into countries
+values (default, 'CANADA');
+insert into countries
+values (default, 'GERMANY');
+insert into countries
+values (default, 'JAPAN');
+insert into countries
+values (default, 'ITALY');
+insert into countries
+values (default, 'AUSTRALIA');
+insert into countries
+values (default, 'INDIA');
 
-insert into persons
-values (default, 'Frank Darabont',
-        1.83,
-        (select id from countries where name = 'France'),
-        60);
-
-insert into movies
-values (default,
-        'admin',
-        'The Green Mile',
-        1999,
-        (select id from countries where name = 'USA'),
-        (select id from moviegenres where name = 'Drama'),
-        (select id from persons where name = 'Frank Darabont'),
-        60000000,
-        286801374,
-        (select id from mpaaratings where name = 'R'),
-        189,
-        0,
-        (select current_timestamp));
+insert into mpaaratings
+values (default, 'G');
+insert into mpaaratings
+values (default, 'PG');
+insert into mpaaratings
+values (default, 'PG_13');
+insert into mpaaratings
+values (default, 'R');
+insert into mpaaratings
+values (default, 'NC_17');

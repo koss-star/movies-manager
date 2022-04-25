@@ -1,14 +1,11 @@
 package ru.kosstar.server.database;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.kosstar.data.*;
-import ru.kosstar.server.InvalidFileException;
+import ru.kosstar.server.IllegalAccessException;
+import ru.kosstar.server.Server;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,9 +14,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class MovieRepository extends AbstractRepository<Integer, Movie> {
+
+    private static final Logger logger = LogManager.getLogger("ServerLogger");
     private static final Map<Integer, Movie> cache = new HashMap<>();
     private final PersonRepository personRepository;
     private final UserRepository userRepository;
@@ -28,13 +26,13 @@ public class MovieRepository extends AbstractRepository<Integer, Movie> {
     private final MpaaRatingRepository mpaaRatingRepository;
 
 
-    public MovieRepository(Connection connection) {
-        super(connection);
-        personRepository = new PersonRepository(connection);
-        userRepository = new UserRepository(connection);
-        movieGenreRepository = new MovieGenreRepository(connection);
-        mpaaRatingRepository = new MpaaRatingRepository(connection);
-        countryRepository = new CountryRepository(connection);
+    public MovieRepository(DbConnectionManager connectionManager) {
+        super(connectionManager);
+        personRepository = new PersonRepository(connectionManager);
+        userRepository = new UserRepository(connectionManager);
+        movieGenreRepository = new MovieGenreRepository(connectionManager);
+        mpaaRatingRepository = new MpaaRatingRepository(connectionManager);
+        countryRepository = new CountryRepository(connectionManager);
     }
 
     private Movie fromResultSet(ResultSet rs) throws SQLException {
@@ -45,7 +43,7 @@ public class MovieRepository extends AbstractRepository<Integer, Movie> {
         Person director = personRepository.get(rs.getInt("director"));
         return new Movie(
                 rs.getInt("id"),
-                user,
+                user.getLogin(),
                 rs.getString("name"),
                 rs.getInt("productionYear"),
                 country,
@@ -77,7 +75,7 @@ public class MovieRepository extends AbstractRepository<Integer, Movie> {
     private String toInsertString(Movie movie) throws SQLException {
         return new StringBuilder()
                 .append("default,")
-                .append("'").append(movie.getOwner().getLogin()).append("',")
+                .append("'").append(movie.getOwner()).append("',")
                 .append("'").append(movie.getName()).append("',")
                 .append(movie.getProductionYear()).append(",")
                 .append(countryRepository.getIdByName(movie.getCountry())).append(",")
@@ -90,8 +88,28 @@ public class MovieRepository extends AbstractRepository<Integer, Movie> {
                 .append(movie.getOscarsCount()).toString();
     }
 
+    @Override
+    public Movie get(Integer key) throws SQLException {
+        logger.info("get (id " + key + ")");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+            ResultSet rs = statement.executeQuery("select * " +
+                    "from movies where id = " + key + ";");
+            if (!rs.next())
+                return null;
+            Movie movie = fromResultSet(rs);
+            Movie cached = cache.get(key);
+            if (cached != null) {
+                cached.copy(movie);
+            } else {
+                cache.put(key, movie);
+            }
+            return movie;
+        }
+    }
+
     public List<Movie> getAll() throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        logger.info("getAll");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select * " +
                     "from movies;");
             List<Movie> movies = new ArrayList<>();
@@ -112,17 +130,31 @@ public class MovieRepository extends AbstractRepository<Integer, Movie> {
 
     @Override
     public void update(Movie value) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        logger.info("update (id " + value.getId() + ")");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+            Person person = personRepository.get(value.getDirector().getId());
+            if (person == null) {
+                value.setDirector(personRepository.insert(value.getDirector()));
+            } else {
+                personRepository.update(value.getDirector());
+            }
             statement.executeUpdate("update movies set " +
                     toUpdateString(value) + " where id = " + value.getId() + ";");
-            personRepository.update(value.getDirector());
+        }
+    }
+
+    public void updateByUserAndId(User user, Movie value) throws SQLException, IllegalAccessException {
+        if (userRepository.checkPass(user)) {
+            update(value);
+        } else {
+            throw new IllegalAccessException();
         }
     }
 
     @Override
     public Movie insert(Movie value) throws SQLException {
-        connection.setAutoCommit(false);
-        try (Statement statement = connection.createStatement()) {
+        logger.info("insert");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             Person director = personRepository.get(value.getDirector().getId());
             if (director == null) {
                 value.setDirector(personRepository.insert(value.getDirector()));
@@ -133,28 +165,44 @@ public class MovieRepository extends AbstractRepository<Integer, Movie> {
             rs.next();
             Movie movie = fromResultSet(rs);
             cache.put(movie.getId(), movie);
-            connection.commit();
             return movie;
-        } catch (SQLException e) {
-            connection.rollback();
-            throw e;
-        } finally {
-            connection.setAutoCommit(true);
         }
     }
 
     @Override
-    public void delete(Integer key) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("delete from movies where id = " + key + ";");
+    public boolean delete(Integer key) throws SQLException {
+        logger.info("delete (id " + key + ")");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+            int result = statement.executeUpdate("delete from movies where id = " + key + ";");
             cache.remove(key);
+            return result > 0;
         }
     }
 
-    public static void main(String[] args) throws SQLException {
-        Connection connection = new DbConnectionManager().getConnection();
-        MovieRepository movieRepository = new MovieRepository(connection);
-        List<Movie> movies = movieRepository.getAll();
+    public int deleteByUser(User user) throws SQLException {
+        logger.info("deleteByUser (user " + user.getLogin() + ")");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+            int result = statement.executeUpdate("delete from movies where owner = '" + user.getLogin() + "';");
+            cache.entrySet().removeIf(it -> it.getValue().getOwner().equals(user.getLogin()));
+            return result;
+        }
+    }
 
+    public boolean deleteByUserAndId(User user, Integer key) throws SQLException, IllegalAccessException {
+        if (userRepository.checkPass(user)) {
+            return delete(key);
+        } else {
+            throw new IllegalAccessException();
+        }
+    }
+
+    @Override
+    public int deleteAll() throws SQLException {
+        logger.info("deleteAll");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+            int result = statement.executeUpdate("delete from movies;");
+            cache.clear();
+            return result;
+        }
     }
 }

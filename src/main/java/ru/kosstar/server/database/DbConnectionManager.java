@@ -2,36 +2,40 @@ package ru.kosstar.server.database;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.kosstar.server.Server;
+import org.postgresql.ds.PGConnectionPoolDataSource;
 
-import javax.sql.DataSource;
-import java.io.*;
-import java.net.ConnectException;
-import java.nio.file.Paths;
-import java.sql.*;
+import javax.sql.PooledConnection;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 public class DbConnectionManager {
-    private static final Logger logger = LogManager.getLogger(DbConnectionManager.class);
-    private String url = null;
-    private String login = null;
-    private String pass = null;
+    private static final Logger logger = LogManager.getLogger("ServerLogger");
+
+    private PooledConnection pooledConnection;
 
     public DbConnectionManager() {
         Properties properties = new Properties();
+        PGConnectionPoolDataSource connectionPoolDataSource = new PGConnectionPoolDataSource();
         try (InputStream input = ClassLoader.getSystemClassLoader().getResourceAsStream("database.properties")) {
             properties.load(input);
-            url = properties.getProperty("jdbc.url");
-            login = properties.getProperty("jdbc.login");
-            pass = properties.getProperty("jdbc.pass");
+            connectionPoolDataSource.setUrl(properties.getProperty("jdbc.url"));
+            connectionPoolDataSource.setUser(properties.getProperty("jdbc.login"));
+            connectionPoolDataSource.setPassword(properties.getProperty("jdbc.pass"));
+            pooledConnection = connectionPoolDataSource.getPooledConnection();
         } catch (IOException e) {
             logger.error("Не удалось прочитать database.properties", e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public Connection getConnection() throws SQLException {
-        logger.info("Открыто новое соединение с бд(" + url + ", " + login + ")");
-        return DriverManager.getConnection(url, login, pass);
+        return pooledConnection.getConnection();
     }
 
     public static void main(String[] args) throws SQLException {

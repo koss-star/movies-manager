@@ -1,6 +1,7 @@
 package ru.kosstar.server.commands;
 
 import ru.kosstar.data.Movie;
+import ru.kosstar.data.User;
 import ru.kosstar.server.MovieManager;
 
 /**
@@ -13,7 +14,7 @@ public class CountLessThanBudgetCommand extends AbstractCommand<Number, Long> {
     }
 
     @Override
-    public Long executeWithArg(Number argument) {
+    public Long executeWithArg(User user, Number argument) {
         long budget = argument.longValue();
         return movieManager
                 .getMovies()

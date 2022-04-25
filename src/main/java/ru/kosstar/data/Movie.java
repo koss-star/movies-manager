@@ -1,15 +1,21 @@
 package ru.kosstar.data;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * Класс, определяющий фильм
  */
 public class Movie implements Comparable<Movie>, Serializable {
+
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
-    private User owner;
+    private String owner;
     private String name; //Поле не может быть null, Строка не может быть пустой
     private int productionYear; //Значение поля должно быть больше 1894 и меньше следующего года
     private Country country;
@@ -34,7 +40,7 @@ public class Movie implements Comparable<Movie>, Serializable {
      * @param durationInMinutes продолжительность в минутах
      * @param oscarsCount       количество оскаров
      */
-    public Movie(int id, User owner, String name, int productionYear, Country country, MovieGenre genre,
+    public Movie(int id, String owner, String name, int productionYear, Country country, MovieGenre genre,
                  Person director, long budget, long fees, MpaaRating mpaaRating,
                  int durationInMinutes, int oscarsCount, LocalDateTime creationDate) {
         this.id = id;
@@ -62,13 +68,8 @@ public class Movie implements Comparable<Movie>, Serializable {
         creationDate = LocalDateTime.now();
     }
 
-    public User getOwner() {
+    public String getOwner() {
         return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-        //TODO remove
     }
 
     public void setId(int id) {
@@ -291,24 +292,13 @@ public class Movie implements Comparable<Movie>, Serializable {
         return creationDate;
     }
 
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
 
     @Override
     public String toString() {
-        return "Movie{" +
-                "id=" + id +
-                ", user=" + owner +
-                ", name='" + name + '\'' +
-                ", productionYear=" + productionYear +
-                ", country=" + country +
-                ", genre=" + genre +
-                ", director=" + director +
-                ", budget=" + budget +
-                ", fees=" + fees +
-                ", mpaaRating=" + mpaaRating +
-                ", durationInMinutes=" + durationInMinutes +
-                ", oscarsCount=" + oscarsCount +
-                ", creationDate=" + creationDate +
-                '}';
+        return gson.toJson(this);
     }
 
     @Override

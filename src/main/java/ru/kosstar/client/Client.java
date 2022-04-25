@@ -1,9 +1,13 @@
 package ru.kosstar.client;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.kosstar.client.commands.*;
+import ru.kosstar.connection.ResponseType;
 import ru.kosstar.connection.ServerMessage;
 import ru.kosstar.data.User;
 import ru.kosstar.exceptions.InterruptionOfCommandException;
+import ru.kosstar.server.Server;
 
 import java.io.*;
 import java.net.*;
@@ -13,6 +17,8 @@ import java.util.*;
  * Класс, который взаимодействует с клиентом
  */
 public class Client {
+
+    private static final Logger logger = LogManager.getLogger("ClientLogger");
     private static int serverPort = 2406;
     private static final Map<String, AbstractCommand> commands = new HashMap<>();
     private final IO io;
@@ -22,10 +28,10 @@ public class Client {
      * Конструктор с заданным модулем ввода/вывода
      *
      * @param io            объект, представляющий модуль ввода/вывода
-     * @param remoteAddress TODO
-     * @throws ClientException если не удалось создать объект клиента
+     * @param remoteAddress адрес сервера
+     * @throws InternalClientException если не удалось создать объект клиента
      */
-    public Client(IO io, InetSocketAddress remoteAddress) throws ClientException {
+    public Client(IO io, InetSocketAddress remoteAddress) throws InternalClientException {
         this.io = io;
         createCommands();
         try {
@@ -34,14 +40,14 @@ public class Client {
             else
                 connection = null;
         } catch (IOException e) {
-            throw new ClientException();
+            throw new InternalClientException();
         }
     }
 
     /**
      * Конструктор для создания клиента без соединения к серверу
      */
-    public Client(IO io) throws ClientException {
+    public Client(IO io) throws InternalClientException {
         this(io, null);
     }
 
@@ -51,8 +57,12 @@ public class Client {
      * @return прочитанное название команды
      */
     public String readCommand() {
-        io.printString("Введите команду:");
-        return io.readNotEmptyString();
+        try {
+            io.printString("Введите команду:");
+            return io.readNotEmptyString();
+        } catch (NoSuchElementException e) {
+            return null;
+        }
     }
 
     /**
@@ -71,18 +81,54 @@ public class Client {
             return command.execute(io);
     }
 
-    public void exit() {
+    private void exit() {
         ((ExitCommand) commands.get("exit")).execute(io);
     }
 
-    private User userSignIn() {
-        User user = User.readUserData(io);
-        return connection.signIn(user) ? user : null;
+    private static void checkServerMessage(ServerMessage serverMessage) throws InternalServerException, InternalClientException {
+        ResponseType type = serverMessage.getType();
+        switch (type) {
+            case NOT_AVAILABLE:
+            case INTERNAL_SERVER_ERROR:
+                throw new InternalServerException();
+            case INVALID_REQUEST:
+                throw new InternalClientException();
+        }
     }
 
-    private User userSignUp() {
+    private static String handleCommandResult(ServerMessage serverMessage) throws InternalClientException {
+        ResponseType type = serverMessage.getType();
+        switch (type) {
+            case OK:
+                return serverMessage.getMessageBody().toString();
+            case ILLEGAL_ACCESS:
+                return "Недостаточно прав.";
+            case FAILED_EXECUTION:
+                return serverMessage.getMessageBody().toString();
+            default:
+                logger.error("Этого тут быть не должно " + type);
+                throw new InternalClientException();
+        }
+    }
+
+    private User userSignIn() throws InternalClientException, InternalServerException {
         User user = User.readUserData(io);
-        return connection.signUp(user) ? user : null;
+        ServerMessage serverMessage = connection.signIn(user);
+        checkServerMessage(serverMessage);
+        if (serverMessage.isSuccess())
+            return user;
+        else
+            return null;
+    }
+
+    private User userSignUp() throws InternalServerException, InternalClientException {
+        User user = User.readUserData(io);
+        ServerMessage serverMessage = connection.signUp(user);
+        checkServerMessage(serverMessage);
+        if (serverMessage.isSuccess())
+            return user;
+        else
+            return null;
     }
 
     private void createCommands() {
@@ -98,19 +144,24 @@ public class Client {
         commands.put("exit", new ExitCommand());
     }
 
-    private User readUser() {
+    private User readUser() throws InternalServerException, InternalClientException {
         User user = null;
         while (user == null) {
-//            io.printString("Войти или зарегистрироваться? Для выхода введите \"выход\".");
-//            String serviceCommand = io.readNotEmptyString();
-            String serviceCommand = "войти";
-            if (serviceCommand.equalsIgnoreCase("войти")) {
-                user = new User("", "");
-//                user = userSignIn();
-            } else if (serviceCommand.equalsIgnoreCase("зарегистрироваться")) {
-                user = new User("", "");
-//                user = userSignUp();
-            } else if (serviceCommand.equalsIgnoreCase("выход")) {
+            try {
+                io.printString("Войти (login) или зарегистрироваться (signup)? Для выхода введите \"exit\".");
+                String serviceCommand = io.readNotEmptyString();
+                if (serviceCommand.equalsIgnoreCase("login")) {
+                    user = userSignIn();
+                    if (user == null)
+                        System.out.println("Неверный логин или пароль.");
+                } else if (serviceCommand.equalsIgnoreCase("signup")) {
+                    user = userSignUp();
+                    if (user == null)
+                        System.out.println("Пользователь с таким логином уже существует.");
+                } else if (serviceCommand.equalsIgnoreCase("exit")) {
+                    exit();
+                }
+            } catch (NoSuchElementException e) {
                 exit();
             }
         }
@@ -120,28 +171,30 @@ public class Client {
     public static void main(String[] args) {
         if (args.length != 0)
             serverPort = Integer.parseInt(args[0]);
-        Client client = null;
         try {
             InetSocketAddress serverAddr = new InetSocketAddress(InetAddress.getLocalHost(), serverPort);
-            client = new Client(new IO(System.in, System.out), serverAddr);
-        } catch (UnknownHostException | ClientException e) {
-            System.out.println("Возникла внутренняя ошибка приложения.");
-            System.exit(-1);
-        }
-
-        User user = client.readUser();
-        String commandName = client.readCommand();
-        while (commandName != null) {
-            try {
-                Object commandArg = client.readCommandArg(commandName);
-                ServerMessage receivedMessage = client.connection.sendCommand(user, commandName, commandArg);
-                client.io.printString(receivedMessage.getMessageBody().toString());
-            } catch (InterruptionOfCommandException e) {
-                if (e.getMessage() != null && !e.getMessage().equals(""))
-                    client.io.printString(e.getMessage());
-                client.io.printString("Команда прервана.");
+            Client client = new Client(new IO(System.in, System.out), serverAddr);
+            User user = client.readUser();
+            String commandName = client.readCommand();
+            while (commandName != null) {
+                try {
+                    Object commandArg = client.readCommandArg(commandName);
+                    ServerMessage receivedMessage = client.connection.sendCommand(user, commandName, commandArg);
+                    Client.checkServerMessage(receivedMessage);
+                    client.io.printString(handleCommandResult(receivedMessage));
+                } catch (InterruptionOfCommandException e) {
+                    if (e.getMessage() != null && !e.getMessage().equals(""))
+                        client.io.printString(e.getMessage());
+                    client.io.printString("Команда прервана.");
+                }
+                commandName = client.readCommand();
             }
-            commandName = client.readCommand();
+        } catch (InternalServerException e) {
+            logger.error("Ошибка сервера", e);
+            System.out.println("Сервер недоступен.");
+        } catch (InternalClientException | UnknownHostException e) {
+            logger.error("Ошибка клиента", e);
+            System.out.println("Возникла внутренняя ошибка приложения.");
         }
     }
 }

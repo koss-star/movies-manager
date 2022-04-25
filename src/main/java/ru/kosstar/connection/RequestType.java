@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Типы запроса от клиента -- серверу
  */
-public enum MessageType implements Serializable {
+public enum RequestType implements Serializable {
     SIGN_UP,
     SIGN_IN,
     COMMAND

@@ -5,31 +5,17 @@ import java.net.SocketAddress;
 
 public class ServerMessage implements Serializable {
     private final Object messageBody;
-    // TODO ошибки бывают разные: ошибка сервера, неправильный запрос от клиента,
-    //  ошибка при выполнении команды (ErrorType)
     private final SocketAddress destination;
-    private final boolean isError;
+    private final ResponseType type;
 
-    public ServerMessage(Object messageBody, boolean isError, SocketAddress destination) {
+    public ServerMessage(Object messageBody, ResponseType type, SocketAddress destination) {
         this.messageBody = messageBody;
-        this.isError = isError;
+        this.type = type;
         this.destination = destination;
     }
 
-    public ServerMessage(Object messageBody, SocketAddress destination) {
-        this(messageBody, false, destination);
-    }
-
-    public ServerMessage(boolean isError, SocketAddress destination) {
-        this(null, isError, destination);
-    }
-
-    public boolean isError() {
-        return isError;
-    }
-
-    public boolean isSuccess() {
-        return !isError;
+    public ServerMessage(ResponseType type, SocketAddress destination) {
+        this(null, type, destination);
     }
 
     public Object getMessageBody() {
@@ -40,12 +26,20 @@ public class ServerMessage implements Serializable {
         return destination;
     }
 
+    public ResponseType getType() {
+        return type;
+    }
+
+    public boolean isSuccess() {
+        return type == ResponseType.OK;
+    }
+
     @Override
     public String toString() {
         return "ServerMessage{" +
                 "messageBody=" + messageBody +
                 ", destination=" + destination +
-                ", isError=" + isError +
+                ", type=" + type +
                 '}';
     }
 }

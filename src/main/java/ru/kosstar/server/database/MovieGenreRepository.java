@@ -1,7 +1,5 @@
 package ru.kosstar.server.database;
 
-import ru.kosstar.data.Country;
-import ru.kosstar.data.MovieGenre;
 import ru.kosstar.data.MovieGenre;
 
 import java.sql.Connection;
@@ -12,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MovieGenreRepository extends AbstractRepository<Integer, MovieGenre> {
-    public MovieGenreRepository(Connection connection) {
-        super(connection);
+    public MovieGenreRepository(DbConnectionManager connectionManager) {
+        super(connectionManager);
     }
 
     private MovieGenre fromResultSet(ResultSet rs) throws SQLException {
@@ -22,7 +20,7 @@ public class MovieGenreRepository extends AbstractRepository<Integer, MovieGenre
 
     @Override
     public MovieGenre get(Integer key) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select name " +
                     "from moviegenres where id = " + key + ";");
             if (rs.next()) {
@@ -34,7 +32,7 @@ public class MovieGenreRepository extends AbstractRepository<Integer, MovieGenre
 
     @Override
     public List<MovieGenre> getAll() throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select name " +
                     "from moviegenres;");
             List<MovieGenre> genres = new ArrayList<>();
@@ -46,7 +44,9 @@ public class MovieGenreRepository extends AbstractRepository<Integer, MovieGenre
     }
 
     public Integer getIdByName(MovieGenre movieGenre) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        if (movieGenre == null)
+            return null;
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select id " +
                     "from moviegenres where name = '" + movieGenre.name() + "';");
             if (rs.next()) {

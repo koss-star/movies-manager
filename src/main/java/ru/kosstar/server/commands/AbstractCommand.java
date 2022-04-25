@@ -1,7 +1,10 @@
 package ru.kosstar.server.commands;
 
+import ru.kosstar.data.User;
 import ru.kosstar.server.FailedCommandExecutionException;
 import ru.kosstar.server.MovieManager;
+
+import java.sql.SQLException;
 
 /**
  * Суперкласс для всех команд серверного приложения,
@@ -36,12 +39,12 @@ public abstract class AbstractCommand<T, R> {
      * @throws IllegalArgumentException        если происходит попытка выполнить команду с аргументом неправильного типа
      * @throws FailedCommandExecutionException если выполнение команды завершилось неуспешно
      */
-    public final R execute(Object argument) throws FailedCommandExecutionException,
+    public final R execute(User user, Object argument) throws FailedCommandExecutionException,
             IllegalArgumentException,
             UnsupportedOperationException {
         if (argument != null) {
             try {
-                return executeWithArg((T) argument);
+                return executeWithArg(user, (T) argument);
             } catch (ClassCastException e) {
                 throw new IllegalArgumentException("Недопустимый аргумент");
             }
@@ -54,7 +57,7 @@ public abstract class AbstractCommand<T, R> {
      *
      * @return результат выполнения команды
      */
-    public R execute() throws UnsupportedOperationException,
+    public R execute(User user) throws UnsupportedOperationException,
             FailedCommandExecutionException {
         throw new UnsupportedOperationException();
     }
@@ -65,7 +68,7 @@ public abstract class AbstractCommand<T, R> {
      * @param argument аргумент команды
      * @return результат выполнения команды
      */
-    public R executeWithArg(T argument) throws UnsupportedOperationException,
+    public R executeWithArg(User user, T argument) throws UnsupportedOperationException,
             FailedCommandExecutionException {
         throw new UnsupportedOperationException();
     }

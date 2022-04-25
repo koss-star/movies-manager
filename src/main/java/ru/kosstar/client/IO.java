@@ -30,12 +30,8 @@ public class IO {
      *
      * @return прочитанная строка
      */
-    public String readString() {
-        try {
-            return in.nextLine().trim();
-        } catch (NoSuchElementException e) {
-            return null;
-        }
+    public String readString() throws NoSuchElementException {
+        return in.nextLine().trim();
     }
 
     public boolean hasNext() {
@@ -47,11 +43,9 @@ public class IO {
      *
      * @return прочитанная строка, null, если достигнут конец потока ввода
      */
-    public String readNotEmptyString() {
+    public String readNotEmptyString() throws NoSuchElementException {
         while (true) {
             String input = readString();
-            if (input == null)
-                return null;
             if (!input.equals(""))
                 return input;
             printString("Строка не может быть пустой. Введите ещё раз: ");

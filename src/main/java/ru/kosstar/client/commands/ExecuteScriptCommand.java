@@ -35,7 +35,7 @@ public class ExecuteScriptCommand extends AbstractCommand {
                     throw new InterruptionOfCommandException("Неправильный формат скрипта.");
                 }
             }
-        } catch (IOException e) {
+        } catch (InternalClientException | IOException e) {
             throw new InterruptionOfCommandException();
         } finally {
             openedFiles.remove(file.getAbsolutePath());

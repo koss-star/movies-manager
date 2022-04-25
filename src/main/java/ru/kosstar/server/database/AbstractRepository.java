@@ -2,18 +2,21 @@ package ru.kosstar.server.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 
 public abstract class AbstractRepository<K, V> {
-    protected final Connection connection;
-
-    public AbstractRepository(Connection connection) {
-        this.connection = connection;
-    }
+    protected final DbConnectionManager connectionManager;
 
     public V get(K key) throws SQLException {
         throw new UnsupportedOperationException();
+    }
+
+    protected Connection getConnection() throws SQLException {
+        return connectionManager.getConnection();
+    }
+
+    public AbstractRepository(DbConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
     }
 
     public List<V> getAll() throws SQLException {
@@ -28,7 +31,11 @@ public abstract class AbstractRepository<K, V> {
         throw new UnsupportedOperationException();
     }
 
-    public void delete(K key) throws SQLException {
+    public boolean delete(K key) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
+
+    public int deleteAll() throws SQLException {
         throw new UnsupportedOperationException();
     }
 }

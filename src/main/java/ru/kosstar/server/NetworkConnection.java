@@ -3,6 +3,7 @@ package ru.kosstar.server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.kosstar.connection.ClientMessage;
+import ru.kosstar.connection.ResponseType;
 import ru.kosstar.connection.ServerMessage;
 
 import java.io.*;
@@ -18,8 +19,8 @@ import java.nio.channels.DatagramChannel;
  * и отправки сообщений в ответ ({@link ServerMessage})
  */
 public class NetworkConnection {
-    private static final Logger logger = LogManager.getLogger(NetworkConnection.class);
-    private final ByteBuffer buffer = ByteBuffer.allocate(4 * 1024 * 1024);
+    private static final Logger logger = LogManager.getLogger("ServerLogger");
+    private final ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
     private final DatagramChannel channel;
 
     /**
@@ -46,28 +47,36 @@ public class NetworkConnection {
      * @return полученное сообщение или null, если запросов в данный момент нет.
      */
     public ClientMessage receiveMessage() {
-        buffer.clear();
-        SocketAddress destination = null;
-        try {
-            destination = channel.receive(buffer);
-            buffer.flip();
-            if (buffer.limit() == 0)
+        synchronized (buffer) {
+            buffer.clear();
+            SocketAddress destination = null;
+            try {
+                destination = channel.receive(buffer);
+                buffer.flip();
+                if (buffer.limit() == 0)
+                    return null;
+                logger.info("Получен запрос от клиента");
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer.array(), 0, buffer.limit());
+                try (ObjectInputStream objIn = new ObjectInputStream(inputStream)) {
+                    ClientMessage receivedMsg = (ClientMessage) objIn.readObject();
+                    if (receivedMsg.getUser() != null)
+                        logger.info("Сообщение принято от пользователя " +
+                                receivedMsg.getUser().getLogin() + " следующего типа: " +
+                                receivedMsg.getType());
+                    else
+                        logger.info("Сообщение принято следующего типа: " +
+                                receivedMsg.getType());
+                    return receivedMsg;
+                }
+            } catch (InvalidClassException | ClassNotFoundException | ClassCastException e) {
+                if (destination != null)
+                    sendMessage(new ServerMessage(ResponseType.INVALID_REQUEST, destination));
+                logger.warn("Неизвестный запрос", e);
                 return null;
-            logger.info("Получен запрос от клиента");
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer.array(), 0, buffer.limit());
-            try (ObjectInputStream objIn = new ObjectInputStream(inputStream)) {
-                ClientMessage receivedMsg = (ClientMessage) objIn.readObject();
-                logger.info("Сообщение принято: " + receivedMsg);
-                return receivedMsg;
+            } catch (IOException e) {
+                logger.error("Ошибка при получении запроса", e);
+                return null;
             }
-        } catch (InvalidClassException | ClassNotFoundException | ClassCastException e) {
-            if (destination != null)
-                sendMessage(new ServerMessage(true, destination));
-            logger.warn("Неизвестный запрос", e);
-            return null;
-        } catch (IOException e) {
-            logger.error("Ошибка при получении запроса", e);
-            return null;
         }
     }
 
@@ -77,18 +86,22 @@ public class NetworkConnection {
      * @param message сообщение для отправки
      */
     public void sendMessage(ServerMessage message) {
-        try {
-            try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream(buffer.capacity());
-                 ObjectOutputStream objOut = new ObjectOutputStream(byteOut)) {
-                objOut.writeObject(message);
-                objOut.flush();
-                buffer.clear();
-                buffer.put(byteOut.toByteArray());
-                buffer.flip();
-                channel.send(buffer, message.getDestination());
+        synchronized (buffer) {
+            if (message == null)
+                return;
+            try {
+                try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream(buffer.capacity());
+                     ObjectOutputStream objOut = new ObjectOutputStream(byteOut)) {
+                    objOut.writeObject(message);
+                    objOut.flush();
+                    buffer.clear();
+                    buffer.put(byteOut.toByteArray());
+                    buffer.flip();
+                    channel.send(buffer, message.getDestination());
+                }
+            } catch (IOException e) {
+                logger.error("Не удалось отправить сообщение", e);
             }
-        } catch (IOException e) {
-            logger.error("Не удалось отправить сообщение", e);
         }
     }
 }

@@ -2,6 +2,7 @@ package ru.kosstar.server.commands;
 
 import ru.kosstar.data.Movie;
 import ru.kosstar.data.MpaaRating;
+import ru.kosstar.data.User;
 import ru.kosstar.server.MovieManager;
 
 /**
@@ -15,7 +16,7 @@ public class CountGreaterThanMpaaRatingCommand extends AbstractCommand<MpaaRatin
     }
 
     @Override
-    public Long executeWithArg(MpaaRating argument) {
+    public Long executeWithArg(User user, MpaaRating argument) {
         return movieManager
                 .getMovies()
                 .values()

@@ -1,26 +1,26 @@
 package ru.kosstar.server.database;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.kosstar.data.Country;
 import ru.kosstar.data.Person;
-import ru.kosstar.data.Person;
 
-import javax.swing.plaf.nimbus.State;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PersonRepository extends AbstractRepository<Integer, Person> {
 
+    private static final Logger logger = LogManager.getLogger("ServerLogger");
     private static final Map<Integer, Person> cache = new HashMap<>();
     private final CountryRepository countryRepository;
 
-    public PersonRepository(Connection connection) {
-        super(connection);
-        countryRepository = new CountryRepository(connection);
+    public PersonRepository(DbConnectionManager connectionManager) {
+        super(connectionManager);
+        countryRepository = new CountryRepository(connectionManager);
     }
 
     private Person fromResultSet(ResultSet rs) throws SQLException {
@@ -53,7 +53,8 @@ public class PersonRepository extends AbstractRepository<Integer, Person> {
 
     @Override
     public Person get(Integer key) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        logger.info("get (id " + key + ")");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select * " +
                     "from persons where id = " + key + ";");
             if (rs.next()) {
@@ -73,7 +74,8 @@ public class PersonRepository extends AbstractRepository<Integer, Person> {
 
     @Override
     public void update(Person value) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        logger.info("update (id " + value.getId() + ")");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate("update persons set " +
                     toUpdateString(value) + " where id = " + value.getId() + ";");
         }
@@ -81,7 +83,8 @@ public class PersonRepository extends AbstractRepository<Integer, Person> {
 
     @Override
     public Person insert(Person value) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        logger.info("insert");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate("insert into persons values (" +
                     toInsertString(value) + ");");
             ResultSet rs = statement.executeQuery("select * from persons order by id desc limit 1");
@@ -93,10 +96,12 @@ public class PersonRepository extends AbstractRepository<Integer, Person> {
     }
 
     @Override
-    public void delete(Integer key) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("delete from persons where id = " + key + ";");
+    public boolean delete(Integer key) throws SQLException {
+        logger.info("delete (id " + key + ")");
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+            int result = statement.executeUpdate("delete from persons where id = " + key + ";");
             cache.remove(key);
+            return result > 0;
         }
     }
 }

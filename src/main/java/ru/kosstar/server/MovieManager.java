@@ -1,71 +1,40 @@
 package ru.kosstar.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import ru.kosstar.connection.CommandWithArgument;
 import ru.kosstar.data.Movie;
+import ru.kosstar.data.User;
 import ru.kosstar.server.commands.*;
+import ru.kosstar.server.database.MovieRepository;
+import ru.kosstar.server.database.PersonRepository;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.time.LocalDateTime;
+import java.sql.SQLException;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
-import java.util.stream.Collectors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Класс для управления коллекцией фильмов с помощью команд
  */
 public class MovieManager {
+
+    private static final Logger logger = LogManager.getLogger("ServerLogger");
     private final Map<Integer, Movie> movies = new HashMap<>();
     private final Map<String, AbstractCommand<?, ?>> commands = new HashMap<>();
-    private final Queue<AbstractCommand<?, ?>> commandHistory = new ArrayDeque<>();
-    private final LocalDateTime initTime;
+    private final Map<User, Queue<AbstractCommand<?, ?>>> commandHistory = new HashMap<>();
     private final AbstractCommand<?, ?> commandNotFound = new CommandNotFoundCommand(null, null, this);
-    private final SaveCommand saveCommand = new SaveCommand("save", "сохранить коллекцию в файл", this);
-    private final File moviesFile;
+    private final MovieRepository movieRepository;
+    private final Lock moviesLock = new ReentrantLock();
 
-    /**
-     * @param file файл с коллекцией фильмов
-     * @throws InvalidFileException если файл не может быть открыт или его не существует
-     */
-    public MovieManager(File file) throws InvalidFileException {
-        if (!file.canRead() || !file.canWrite())
-            throw new InvalidFileException();
-        readMoviesFromFile(file);
-        this.moviesFile = file;
-        initTime = LocalDateTime.now();
+    public MovieManager(MovieRepository movieRepository) throws SQLException {
+        this.movieRepository = movieRepository;
+        movieRepository.getAll().forEach(m -> movies.put(m.getId(), m));
+        logger.info("Коллекция проинициализирована, размер коллекции: " + movies.size());
         createCommands();
-    }
-
-    public void saveMovies() {
-        saveCommand.executeWithArg(moviesFile.getName());
-    }
-
-    private void readMoviesFromFile(File file) throws InvalidFileException {
-        if (file == null)
-            throw new InvalidFileException();
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
-        try {
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String collectionJson = reader.lines().collect(Collectors.joining());
-                Movie[] movies = gson.fromJson(collectionJson, Movie[].class);
-                for (Movie movie : movies) {
-                    this.movies.put(movie.getId(), movie);
-                }
-            }
-        } catch (IOException e) {
-            throw new InvalidFileException("Произошла ошибка чтения из файла.");
-        } catch (JsonSyntaxException e) {
-            throw new InvalidFileException("Некорректный формат данных в файле.");
-        }
     }
 
     private void createCommands() {
@@ -111,8 +80,8 @@ public class MovieManager {
      *
      * @return список команд
      */
-    public Queue<AbstractCommand<?, ?>> getCommandHistory() {
-        return commandHistory;
+    public Queue<AbstractCommand<?, ?>> getCommandHistory(User user) {
+        return commandHistory.get(user);
     }
 
     /**
@@ -121,36 +90,40 @@ public class MovieManager {
      * @param commandWithArgument команда для исполнения
      * @return результат выполнения команды
      */
-    public Object executeCommand(CommandWithArgument commandWithArgument) throws FailedCommandExecutionException,
+    public Object executeCommand(User user, CommandWithArgument commandWithArgument)
+            throws FailedCommandExecutionException,
             IllegalArgumentException,
             UnsupportedOperationException {
         if (commandWithArgument.getArgument() == null)
-            return executeCommand(commandWithArgument.getName());
+            return executeCommand(user, commandWithArgument.getName());
         AbstractCommand<?, ?> command = commands.getOrDefault(commandWithArgument.getName(), commandNotFound);
         if (command != commandNotFound)
-            pushCommandToHistory(command);
-        return command.execute(commandWithArgument.getArgument());
+            pushCommandToHistory(user, command);
+        return command.execute(user, commandWithArgument.getArgument());
     }
 
-    private Object executeCommand(String commandName) throws FailedCommandExecutionException {
+    private Object executeCommand(User user, String commandName) throws FailedCommandExecutionException {
         AbstractCommand<?, ?> command = commands.getOrDefault(commandName, commandNotFound);
         if (command != commandNotFound)
-            pushCommandToHistory(command);
-        return command.execute();
+            pushCommandToHistory(user, command);
+        return command.execute(user);
     }
 
-    /**
-     * Метод для получения даты создания коллекции
-     *
-     * @return дата создания коллекции
-     */
-    public LocalDateTime getInitTime() {
-        return initTime;
+    private void pushCommandToHistory(User user, AbstractCommand<?, ?> command) {
+        if (!commandHistory.containsKey(user)) {
+            commandHistory.put(user, new ArrayDeque<>());
+        }
+        Queue<AbstractCommand<?, ?>> userHistory = commandHistory.get(user);
+        if (userHistory.size() >= 14)
+            userHistory.poll();
+        userHistory.add(command);
     }
 
-    private void pushCommandToHistory(AbstractCommand<?, ?> command) {
-        if (commandHistory.size() >= 14)
-            commandHistory.poll();
-        commandHistory.add(command);
+    public MovieRepository getMovieRepository() {
+        return movieRepository;
+    }
+
+    public Lock getMoviesLock() {
+        return moviesLock;
     }
 }

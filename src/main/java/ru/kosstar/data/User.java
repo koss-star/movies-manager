@@ -3,6 +3,7 @@ package ru.kosstar.data;
 import ru.kosstar.client.IO;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class User implements Serializable {
     private String login;
@@ -45,8 +46,24 @@ public class User implements Serializable {
     @Override
     public String toString() {
         return "User{" +
-                "login='" + login + '\'' +
-                ", pass='" + pass + '\'' +
-                '}';
+                "login='" + login + '}';
+    }
+
+    public void copy(User user) {
+        this.login = user.getLogin();
+        this.pass = user.getPass();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(login, user.login) && Objects.equals(pass, user.pass);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(login, pass);
     }
 }

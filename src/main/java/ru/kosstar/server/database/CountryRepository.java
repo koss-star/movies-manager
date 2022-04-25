@@ -10,8 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CountryRepository extends AbstractRepository<Integer, Country> {
-    public CountryRepository(Connection connection) {
-        super(connection);
+
+    public CountryRepository(DbConnectionManager connectionManager) {
+        super(connectionManager);
     }
 
     private Country fromResultSet(ResultSet rs) throws SQLException {
@@ -20,7 +21,7 @@ public class CountryRepository extends AbstractRepository<Integer, Country> {
 
     @Override
     public Country get(Integer key) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select name " +
                     "from countries where id = " + key + ";");
             if (rs.next()) {
@@ -32,7 +33,7 @@ public class CountryRepository extends AbstractRepository<Integer, Country> {
 
     @Override
     public List<Country> getAll() throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select name " +
                     "from countries;");
             List<Country> countries = new ArrayList<>();
@@ -44,7 +45,9 @@ public class CountryRepository extends AbstractRepository<Integer, Country> {
     }
 
     public Integer getIdByName(Country country) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+        if (country == null)
+            return null;
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery("select id " +
                     "from countries where name = '" + country.name() + "';");
             if (rs.next()) {

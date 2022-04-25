@@ -1,5 +1,6 @@
 package ru.kosstar.server.commands;
 
+import ru.kosstar.data.User;
 import ru.kosstar.server.MovieManager;
 
 import java.util.stream.Collectors;
@@ -14,7 +15,7 @@ public class HelpCommand extends AbstractCommand<Nothing, String> {
     }
 
     @Override
-    public String execute() {
+    public String execute(User user) {
         return movieManager.getCommands()
                 .values()
                 .stream()

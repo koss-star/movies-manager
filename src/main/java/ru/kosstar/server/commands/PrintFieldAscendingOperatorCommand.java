@@ -16,7 +16,7 @@ public class PrintFieldAscendingOperatorCommand extends AbstractCommand<Nothing,
     }
 
     @Override
-    public List<Person> execute() {
+    public List<Person> execute(User user) {
         return movieManager
                 .getMovies()
                 .values()

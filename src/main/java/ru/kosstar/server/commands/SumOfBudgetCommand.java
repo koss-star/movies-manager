@@ -1,6 +1,7 @@
 package ru.kosstar.server.commands;
 
 import ru.kosstar.data.Movie;
+import ru.kosstar.data.User;
 import ru.kosstar.server.MovieManager;
 
 /**
@@ -13,7 +14,7 @@ public class SumOfBudgetCommand extends AbstractCommand<Nothing, Long> {
     }
 
     @Override
-    public Long execute() {
+    public Long execute(User user) {
         return movieManager
                 .getMovies()
                 .values()
