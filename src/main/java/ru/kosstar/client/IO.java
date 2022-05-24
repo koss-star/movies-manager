@@ -2,11 +2,13 @@ package ru.kosstar.client;
 
 import ru.kosstar.data.*;
 
+import java.io.Console;
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.function.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -262,5 +264,71 @@ public class IO {
             }
         }
         return file;
+    }
+
+    public String chooseCommand(String... options) {
+        String cmd = null;
+        while (cmd == null) {
+            printString("Выберите команду " + Arrays.toString(options) + ":");
+            cmd = readNotEmptyString();
+            String temp = cmd;
+            if (Arrays.stream(options).noneMatch(it -> it.equals(temp))) {
+                cmd = null;
+            }
+        }
+        return cmd;
+    }
+
+    public static User readUserDataFromConsole() {
+        Console console = System.console();
+        if (console == null)
+            return readUserData();
+        String login = null, pass = null;
+        while (login == null || pass == null) {
+            if (login == null) {
+                System.out.println("Введите логин:");
+                login = console.readLine().trim();
+                if (!Pattern.matches(loginPattern.pattern(), login)) {
+                    System.out.println("Логин может содержать только латинские буквы, цифры и следующие символы: .-_.");
+                    login = null;
+                }
+            } else {
+                System.out.println("Введите пароль:");
+                pass = new String(console.readPassword()).trim();
+                if (!Pattern.matches(passPattern.pattern(), pass)) {
+                    System.out.println("Пароль не может содержать пробельные символы, " +
+                            "а его длина должна быть не менее 5 символов.");
+                    pass = null;
+                }
+            }
+        }
+        return new User(login, pass);
+    }
+
+    private static final Pattern loginPattern = Pattern.compile("[\\d\\w.\\-_]+");
+    private static final Pattern passPattern = Pattern.compile("[^\\\\s]{5,64}");
+
+    public static User readUserData() {
+        Scanner console = new Scanner(System.in);
+        String login = null, pass = null;
+        while (login == null || pass == null) {
+            if (login == null) {
+                System.out.println("Введите логин:");
+                login = console.nextLine().trim();
+                if (!Pattern.matches(loginPattern.pattern(), login)) {
+                    System.out.println("Логин может содержать только латинские буквы, цифры и следующие символы: .-_.");
+                    login = null;
+                }
+            } else {
+                System.out.println("Введите пароль:");
+                pass = console.nextLine().trim();
+                if (!Pattern.matches(passPattern.pattern(), pass)) {
+                    System.out.println("Пароль не может содержать пробельные символы, " +
+                            "а его длина должна быть не менее 5 символов.");
+                    pass = null;
+                }
+            }
+        }
+        return new User(login, pass);
     }
 }

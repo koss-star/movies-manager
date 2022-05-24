@@ -4,8 +4,6 @@ import ru.kosstar.data.User;
 import ru.kosstar.server.FailedCommandExecutionException;
 import ru.kosstar.server.MovieManager;
 
-import java.sql.SQLException;
-
 /**
  * Суперкласс для всех команд серверного приложения,
  * которые занимаются выполнением команд пользователя

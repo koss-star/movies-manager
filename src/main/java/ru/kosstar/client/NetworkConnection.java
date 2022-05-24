@@ -43,22 +43,22 @@ public class NetworkConnection {
         }
     }
 
-    public ServerMessage sendCommand(User user, String commandName, Object commandArg) throws InternalClientException {
+    public ServerMessage sendCommand(User user, String commandName, Object commandArg) throws InternalClientException, InternalServerException {
         sendMessage(user, RequestType.COMMAND, new CommandWithArgument(commandName, commandArg));
         return receiveMessage();
     }
 
-    public ServerMessage signIn(User user) throws InternalClientException {
+    public ServerMessage signIn(User user) throws InternalClientException, InternalServerException {
         sendMessage(null, RequestType.SIGN_IN, user);
         return receiveMessage();
     }
 
-    public ServerMessage signUp(User user) throws InternalClientException {
+    public ServerMessage signUp(User user) throws InternalClientException, InternalServerException {
         sendMessage(null, RequestType.SIGN_UP, user);
         return receiveMessage();
     }
 
-    public ServerMessage receiveMessage() throws InternalClientException {
+    public ServerMessage receiveMessage() throws InternalClientException, InternalServerException {
         try {
             buffer.clear();
             DatagramPacket packet = new DatagramPacket(buffer.array(), buffer.capacity(), remoteAddr);
@@ -68,16 +68,28 @@ public class NetworkConnection {
                     new ByteArrayInputStream(buffer.array(), 0, buffer.limit())
             )) {
                 ServerMessage received = (ServerMessage) objIn.readObject();
+                checkServerMessage(received);
                 logger.info("Получил сообщение от сервера " + received.getType());
                 return received;
             }
         } catch (SocketTimeoutException e) {
-            return new ServerMessage("Сервер недоступен", ResponseType.NOT_AVAILABLE, null);
+            throw new InternalServerException("Сервер недоступен.");
+//            return new ServerMessage("Сервер недоступен", ResponseType.NOT_AVAILABLE, null);
         } catch (ClassNotFoundException | ClassCastException | IOException e) {
             logger.error("Ошибка при получении сообщения от сервера", e);
             throw new InternalClientException();
         }
     }
 
+    private static void checkServerMessage(ServerMessage serverMessage) throws InternalServerException, InternalClientException {
+        ResponseType type = serverMessage.getType();
+        switch (type) {
+            case NOT_AVAILABLE:
+            case INTERNAL_SERVER_ERROR:
+                throw new InternalServerException();
+            case INVALID_REQUEST:
+                throw new InternalClientException();
+        }
+    }
 
 }

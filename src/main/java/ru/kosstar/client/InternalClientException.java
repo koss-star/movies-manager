@@ -3,7 +3,7 @@ package ru.kosstar.client;
 public class InternalClientException extends Exception {
 
     public InternalClientException() {
-        super();
+        super("Произошла внутренняя ошибка приложения.");
     }
 
     public InternalClientException(String message) {

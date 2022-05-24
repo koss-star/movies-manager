@@ -7,14 +7,10 @@ import ru.kosstar.connection.CommandWithArgument;
 import ru.kosstar.connection.ResponseType;
 import ru.kosstar.connection.ServerMessage;
 import ru.kosstar.data.User;
-import ru.kosstar.server.database.DbConnectionManager;
 import ru.kosstar.server.database.UserRepository;
 
 import java.net.SocketAddress;
 import java.sql.SQLException;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -66,7 +62,11 @@ public class ClientManager {
                         User authUser = (User) messageBody;
                         logger.info("Запрос на аутентификацию от пользователя " + authUser.getLogin());
                         if (userRepository.checkPass(authUser))
-                            sendingMessage = new ServerMessage(ResponseType.OK, destination);
+                            sendingMessage = new ServerMessage(
+                                    userRepository.encryptUser(authUser),
+                                    ResponseType.OK,
+                                    destination
+                            );
                         else
                             sendingMessage = new ServerMessage(ResponseType.LOGIN_FAILED, destination);
                         break;
@@ -77,11 +77,17 @@ public class ClientManager {
                             sendingMessage = new ServerMessage(ResponseType.LOGIN_FAILED, destination);
                         else {
                             userRepository.insert(registerUser);
-                            sendingMessage = new ServerMessage(ResponseType.OK, destination);
+                            sendingMessage = new ServerMessage(
+                                    userRepository.encryptUser(registerUser),
+                                    ResponseType.OK,
+                                    destination
+                            );
                         }
                         break;
                     case COMMAND:
                         try {
+                            if (receivedMessage.getUser() == null)
+                                throw new IllegalArgumentException();
                             logger.info("Попытка выполнить команду(" + messageBody + ") от пользователя " +
                                     receivedMessage.getUser().getLogin());
                             sendingMessage = new ServerMessage(

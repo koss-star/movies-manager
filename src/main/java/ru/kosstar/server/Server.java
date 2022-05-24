@@ -53,6 +53,7 @@ public class Server {
         Server server;
         try {
             server = new Server(Server.port);
+            System.out.println("Server's running");
         } catch (SocketException | SQLException e) {
             System.out.println(e.getMessage());
             return;

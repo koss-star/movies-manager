@@ -5,7 +5,6 @@ import ru.kosstar.data.User;
 import ru.kosstar.server.FailedCommandExecutionException;
 import ru.kosstar.server.MovieManager;
 
-import java.sql.SQLException;
 import java.util.*;
 
 /**

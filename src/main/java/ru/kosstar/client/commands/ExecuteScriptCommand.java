@@ -27,8 +27,8 @@ public class ExecuteScriptCommand extends AbstractCommand {
                 Client scriptClient = new Client(scriptIO);
                 try {
                     while (scriptIO.hasNext()) {
-                        String commandName = scriptClient.readCommand();
-                        Object commandArg = scriptClient.readCommandArg(commandName);
+                        String commandName = scriptClient.getCommandManager().readCommand();
+                        Object commandArg = scriptClient.getCommandManager().readCommandArg(commandName);
                         commandsList.add(new CommandWithArgument(commandName, commandArg));
                     }
                 } catch (NoSuchElementException e) {

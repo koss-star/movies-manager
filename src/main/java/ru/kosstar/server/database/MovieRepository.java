@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.kosstar.data.*;
 import ru.kosstar.server.IllegalAccessException;
-import ru.kosstar.server.Server;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

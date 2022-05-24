@@ -7,7 +7,6 @@ import ru.kosstar.data.Movie;
 import ru.kosstar.data.User;
 import ru.kosstar.server.commands.*;
 import ru.kosstar.server.database.MovieRepository;
-import ru.kosstar.server.database.PersonRepository;
 
 import java.sql.SQLException;
 import java.util.ArrayDeque;

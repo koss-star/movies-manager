@@ -2,6 +2,8 @@ package ru.kosstar.server.database;
 
 import ru.kosstar.data.User;
 
+import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -11,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class UserRepository extends AbstractRepository<String, User> {
 
@@ -21,7 +24,6 @@ public class UserRepository extends AbstractRepository<String, User> {
 
     public UserRepository(DbConnectionManager connectionManager) {
         super(connectionManager);
-
         try {
             md = MessageDigest.getInstance("MD2");
         } catch (NoSuchAlgorithmException e) {
@@ -70,6 +72,11 @@ public class UserRepository extends AbstractRepository<String, User> {
         }
     }
 
+    public User encryptUser(User user) {
+        String hashedPass = hashPass(user.getPass());
+        return new User(user.getLogin(), hashedPass);
+    }
+
     @Override
     public User insert(User value) throws SQLException {
         try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
@@ -79,11 +86,28 @@ public class UserRepository extends AbstractRepository<String, User> {
         }
     }
 
+    private String hash(String str) {
+        byte[] bytes = md.digest(str.getBytes());
+        BigInteger no = new BigInteger(1, bytes);
+        String hashed = no.toString(16);
+        while (hashed.length() < 32) {
+            hashed = "0" + hashed;
+        }
+        return hashed;
+    }
+
     private String hashPass(String pass) {
-        String salt = new String(md.digest(pass.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
-        byte[] data = (pepper + pass + salt).getBytes(StandardCharsets.UTF_8);
-        byte[] hashed = md.digest(data);
-        return new String(hashed, StandardCharsets.UTF_8);
+        String salt = hash(pass);
+        return hash(pepper + pass + salt);
+    }
+
+    public static void main(String[] args) {
+        UserRepository repository = new UserRepository(null);
+        Scanner in = new Scanner(System.in);
+        while (true) {
+            String pass = in.nextLine().trim();
+            System.out.println("hash for pass (" + pass + ") is (" + repository.hashPass(pass) + ")");
+        }
     }
 
 }

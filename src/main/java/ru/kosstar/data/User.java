@@ -1,15 +1,32 @@
 package ru.kosstar.data;
 
-import ru.kosstar.client.IO;
+import javafx.scene.transform.Scale;
+import ru.kosstar.client.InvalidInputValueException;
 
+import java.io.Console;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class User implements Serializable {
+    private static final Pattern loginPattern = Pattern.compile("[\\d\\w.\\-_]+");
+    private static final Pattern passPattern = Pattern.compile("[^\\\\s]{5,64}");
     private String login;
     private String pass;
 
-    public User(String login, String pass) {
+    public User(String login, String pass) throws InvalidInputValueException {
+        List<String> errors = new ArrayList<>();
+        if (!Pattern.matches(loginPattern.pattern(), login))
+            errors.add("login");
+        else if (!Pattern.matches(passPattern.pattern(), pass))
+            errors.add("pass");
+        if (errors.size() > 0)
+            throw new InvalidInputValueException(errors.toArray(new String[0]));
         this.login = login;
         this.pass = pass;
     }
@@ -18,29 +35,8 @@ public class User implements Serializable {
         return login;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
     public String getPass() {
         return pass;
-    }
-
-    public void setPass(String pass) {
-        this.pass = pass;
-    }
-
-    public static User readUserData(IO io) {
-        io.printString("Введите логин:");
-        String login = io.readNotEmptyString();
-        if (login == null)
-            return null;
-        io.printString("Введите пароль:");
-        String pass = io.readNotEmptyString();
-        if (pass == null) {
-            return null;
-        }
-        return new User(login, pass);
     }
 
     @Override
