@@ -1,7 +1,8 @@
 package ru.kosstar.client;
 
-import ru.kosstar.client.commands.*;
+import ru.kosstar.client.console.IO;
 import ru.kosstar.exceptions.InterruptionOfCommandException;
+import ru.kosstar.client.console.commands.*;
 
 import java.util.HashMap;
 import java.util.Map;

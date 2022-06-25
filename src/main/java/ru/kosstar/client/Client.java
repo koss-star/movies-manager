@@ -2,12 +2,16 @@ package ru.kosstar.client;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import ru.kosstar.client.console.IO;
+import ru.kosstar.client.exceptions.InternalClientException;
+import ru.kosstar.client.exceptions.InternalServerException;
+import ru.kosstar.client.network.UserRepository;
+import ru.kosstar.client.network.NetworkConnection;
 import ru.kosstar.connection.ResponseType;
 import ru.kosstar.connection.ServerMessage;
 import ru.kosstar.data.User;
 import ru.kosstar.exceptions.InterruptionOfCommandException;
 
-import java.io.*;
 import java.net.*;
 import java.util.NoSuchElementException;
 
@@ -20,7 +24,7 @@ public class Client {
     private final IO io;
     private final NetworkConnection connection;
     private final CommandManager commandManager;
-    private final Authentication authentication;
+    private final UserRepository authentication;
 
     /**
      * Конструктор с заданным модулем ввода/вывода
@@ -32,15 +36,11 @@ public class Client {
     public Client(IO io, InetSocketAddress remoteAddress) throws InternalClientException {
         this.io = io;
         this.commandManager = new CommandManager(io);
-        try {
-            if (remoteAddress != null)
-                connection = new NetworkConnection(remoteAddress);
-            else
-                connection = null;
-        } catch (IOException e) {
-            throw new InternalClientException();
-        }
-        this.authentication = new Authentication(connection);
+        if (remoteAddress != null)
+            connection = NetworkConnection.getInstance();
+        else
+            connection = null;
+        this.authentication = new UserRepository();
     }
 
     /**

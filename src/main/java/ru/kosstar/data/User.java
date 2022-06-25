@@ -1,16 +1,9 @@
 package ru.kosstar.data;
 
-import javafx.scene.transform.Scale;
-import ru.kosstar.client.InvalidInputValueException;
+import ru.kosstar.client.exceptions.InvalidInputValueException;
 
-import java.io.Console;
-import java.io.IOException;
 import java.io.Serializable;
-import java.nio.CharBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class User implements Serializable {
@@ -19,15 +12,25 @@ public class User implements Serializable {
     private String login;
     private String pass;
 
+    public User() {
+        login = "";
+        pass = "";
+    }
+
     public User(String login, String pass) throws InvalidInputValueException {
-        List<String> errors = new ArrayList<>();
+        setLogin(login);
+        setPass(pass);
+    }
+
+    public void setLogin(String login) throws InvalidInputValueException {
         if (!Pattern.matches(loginPattern.pattern(), login))
-            errors.add("login");
-        else if (!Pattern.matches(passPattern.pattern(), pass))
-            errors.add("pass");
-        if (errors.size() > 0)
-            throw new InvalidInputValueException(errors.toArray(new String[0]));
+            throw new InvalidInputValueException("login");
         this.login = login;
+    }
+
+    public void setPass(String pass) throws InvalidInputValueException {
+        if (!Pattern.matches(passPattern.pattern(), pass))
+            throw new InvalidInputValueException("pass");
         this.pass = pass;
     }
 

@@ -1,11 +1,17 @@
 package ru.kosstar.data;
 
+import ru.kosstar.client.ui.view.LocalFormatter;
+
 import java.io.Serializable;
+import java.text.ParseException;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Класс, определяющий режиссёра
  */
 public class Person implements Comparable<Person>, Serializable {
+    @Ignore
     private int id;
     private String name; //Поле не может быть null, Строка не может быть пустой
     private double growthInMetres; //Значение поля не может быть больше 3.0 или меньше 0
@@ -24,6 +30,10 @@ public class Person implements Comparable<Person>, Serializable {
         setGrowthInMetres(growthInMetres);
         setNationality(nationality);
         setFilmCount(filmCount);
+    }
+
+    public Person(Person person) {
+        this(person.id, person.name, person.growthInMetres, person.nationality, person.filmCount);
     }
 
     /**
@@ -45,7 +55,7 @@ public class Person implements Comparable<Person>, Serializable {
      */
     public void setName(String name) throws IllegalArgumentException {
         if (name == null || name.equals(""))
-            throw new IllegalArgumentException("Значение поля не может быть пустым.");
+            throw new IllegalArgumentException("error.person.name");
         this.name = name;
     }
 
@@ -57,8 +67,16 @@ public class Person implements Comparable<Person>, Serializable {
      */
     public void setGrowthInMetres(double growthInMetres) throws IllegalArgumentException {
         if (growthInMetres > 3.0 || growthInMetres <= 0)
-            throw new IllegalArgumentException("Значение поля не может быть больше 3.0 или меньше 0.");
+            throw new IllegalArgumentException("error.person.growthInMetres");
         this.growthInMetres = growthInMetres;
+    }
+
+    public void setGrowthInMetres(String growthInMetres) throws IllegalArgumentException {
+        try {
+            setGrowthInMetres(LocalFormatter.numberFormatter(2).parse(growthInMetres).doubleValue());
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("error.need.double");
+        }
     }
 
     /**
@@ -70,6 +88,10 @@ public class Person implements Comparable<Person>, Serializable {
         this.nationality = nationality;
     }
 
+    public void setNationality(String nationality) {
+        setNationality(Enum.valueOf(Country.class, nationality));
+    }
+
     /**
      * Метод для задания количества снятых фильмов
      *
@@ -78,8 +100,16 @@ public class Person implements Comparable<Person>, Serializable {
      */
     public void setFilmCount(int filmCount) throws IllegalArgumentException {
         if (filmCount <= 0)
-            throw new IllegalArgumentException("Значение поля не может быть меньше 0.");
+            throw new IllegalArgumentException("error.person.filmCount");
         this.filmCount = filmCount;
+    }
+
+    public void setFilmCount(String filmCount) throws IllegalArgumentException {
+        try {
+            setFilmCount(Integer.parseInt(filmCount));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("error.need.int");
+        }
     }
 
     /**
@@ -142,5 +172,18 @@ public class Person implements Comparable<Person>, Serializable {
         this.growthInMetres = p.growthInMetres;
         this.nationality = p.nationality;
         this.filmCount = p.filmCount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return id == person.id && Double.compare(person.growthInMetres, growthInMetres) == 0 && filmCount == person.filmCount && name.equals(person.name) && nationality == person.nationality;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, growthInMetres, nationality, filmCount);
     }
 }

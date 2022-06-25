@@ -17,5 +17,5 @@ public enum MovieGenre implements Serializable {
     HORROR,
     THRILLER,
     DOCUMENTARY,
-    FANTASY;
+    FANTASY
 }
